@@ -2,11 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REIT Strategist v3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>REIT Strategist v2</title>
 <meta name="theme-color" content="#0b1220">
 <meta name="color-scheme" content="dark">
 <meta name="description" content="Live REIT screener with AI Screener, Analyst, Tactical, and Order Router agents. Real market data plus broker integration. Not investment advice.">
+
+<!-- PWA / mobile install meta tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REIT Strategist">
+<meta name="application-name" content="REIT Strategist">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<!-- SVG icon (used for apple-touch-icon + manifest) — bar chart in app colors -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%230b1220'%20rx='80'/%3E%3Crect%20x='120'%20y='220'%20width='70'%20height='172'%20fill='%233ddc97'%20rx='8'/%3E%3Crect%20x='210'%20y='170'%20width='70'%20height='222'%20fill='%233ddc97'%20rx='8'%20opacity='0.85'/%3E%3Crect%20x='300'%20y='250'%20width='70'%20height='142'%20fill='%233ddc97'%20rx='8'%20opacity='0.65'/%3E%3Ctext%20x='256'%20y='150'%20font-family='Arial,sans-serif'%20font-size='56'%20font-weight='bold'%20fill='%233ddc97'%20text-anchor='middle'%3EREIT%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%230b1220'%20rx='80'/%3E%3Crect%20x='120'%20y='220'%20width='70'%20height='172'%20fill='%233ddc97'%20rx='8'/%3E%3Crect%20x='210'%20y='170'%20width='70'%20height='222'%20fill='%233ddc97'%20rx='8'%20opacity='0.85'/%3E%3Crect%20x='300'%20y='250'%20width='70'%20height='142'%20fill='%233ddc97'%20rx='8'%20opacity='0.65'/%3E%3Ctext%20x='256'%20y='150'%20font-family='Arial,sans-serif'%20font-size='56'%20font-weight='bold'%20fill='%233ddc97'%20text-anchor='middle'%3EREIT%3C/text%3E%3C/svg%3E">
+
+<!-- Web app manifest as data URI — makes "Add to Home Screen" / "Install app" work on Android/iOS -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22REIT%20Strategist%22%2C%22short_name%22%3A%22REIT%22%2C%22description%22%3A%22Live%20REIT%20screener%20with%20AI%20agents%2C%20broker%20integration%2C%20and%20dividend%20income%20tracking%22%2C%22start_url%22%3A%22./%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22any%22%2C%22background_color%22%3A%22%230b1220%22%2C%22theme_color%22%3A%22%230b1220%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520512%2520512%2527%253E%253Crect%2520width%253D%2527512%2527%2520height%253D%2527512%2527%2520fill%253D%2527%25230b1220%2527%2520rx%253D%252780%2527%252F%253E%253Crect%2520x%253D%2527120%2527%2520y%253D%2527220%2527%2520width%253D%252770%2527%2520height%253D%2527172%2527%2520fill%253D%2527%25233ddc97%2527%2520rx%253D%25278%2527%252F%253E%253Crect%2520x%253D%2527210%2527%2520y%253D%2527170%2527%2520width%253D%252770%2527%2520height%253D%2527222%2527%2520fill%253D%2527%25233ddc97%2527%2520rx%253D%25278%2527%2520opacity%253D%25270.85%2527%252F%253E%253Crect%2520x%253D%2527300%2527%2520y%253D%2527250%2527%2520width%253D%252770%2527%2520height%253D%2527142%2527%2520fill%253D%2527%25233ddc97%2527%2520rx%253D%25278%2527%2520opacity%253D%25270.65%2527%252F%253E%253Ctext%2520x%253D%2527256%2527%2520y%253D%2527150%2527%2520font-family%253D%2527Arial%252Csans-serif%2527%2520font-size%253D%252756%2527%2520font-weight%253D%2527bold%2527%2520fill%253D%2527%25233ddc97%2527%2520text-anchor%253D%2527middle%2527%253EREIT%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
 <style>
 :root{
   --bg:#0b1220; --panel:#121a2b; --panel-alt:#182338; --border:#23304a;
@@ -654,6 +670,40 @@ select#f-sector{min-width:150px}
     </div>
 
     <div class="card">
+      <h3>Installing on your phone (Android &amp; iPhone)</h3>
+      <p style="font-size:13px;line-height:1.7">This tool is a <strong>PWA</strong> (Progressive Web App) &mdash; you can install it on your phone's home screen and use it like a native app, even offline.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:8px"><strong>For full install support, you need 2 files on your GitHub Pages site:</strong></p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px;margin-top:6px">
+        <li><code>REIT_Strategist_v2.html</code> &mdash; the app itself</li>
+        <li><code>sw.js</code> &mdash; the service worker (enables install + offline use)</li>
+      </ol>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px">Both files must be in the <strong>same directory</strong> on your GitHub repo. If you only upload the HTML file, the app works in the browser but Chrome won't show the "Install app" option.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:10px"><strong>On Android (Chrome):</strong></p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li>Open your GitHub Pages URL in Chrome (e.g., <code>https://yourname.github.io/your-repo/REIT_Strategist_v2.html</code>)</li>
+        <li>Wait for the page to fully load</li>
+        <li>Tap the <strong>three dots menu</strong> (⋮) in the top right</li>
+        <li>Tap <strong>"Install app"</strong> (or "Add to Home screen" on older Chrome)</li>
+        <li>Confirm &mdash; the app appears on your home screen and opens in fullscreen mode</li>
+      </ol>
+      <p style="font-size:13px;line-height:1.7;margin-top:8px"><strong>On iPhone (Safari):</strong></p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li>Open your GitHub Pages URL in Safari</li>
+        <li>Tap the <strong>Share button</strong> (square with up arrow, at the bottom)</li>
+        <li>Tap <strong>"Add to Home Screen"</strong></li>
+        <li>Tap <strong>"Add"</strong> &mdash; the app appears on your home screen</li>
+      </ol>
+      <p style="font-size:13px;line-height:1.7;margin-top:8px"><strong>If "Install app" doesn't appear on Android:</strong></p>
+      <ul style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li>Make sure <code>sw.js</code> is uploaded to the same directory as the HTML file</li>
+        <li>Make sure your GitHub Pages site is served over <strong>HTTPS</strong> (it is by default)</li>
+        <li>Try visiting the page, interacting with it for 30+ seconds, then check the menu again &mdash; Chrome has a minimum engagement requirement</li>
+        <li>Clear Chrome's cache for the site and reload</li>
+        <li>As a fallback, "Add to Home screen" always works (creates a shortcut that opens in standalone mode)</li>
+      </ul>
+    </div>
+
+    <div class="card">
       <h3>Good to know (limitations)</h3>
       <ul style="font-size:13px;line-height:1.9;padding-left:20px">
         <li>This tool runs entirely in your browser &mdash; no backend, no server. Your API keys never leave your computer except to call the provider directly (Finnhub, the AI, your broker).</li>
@@ -668,8 +718,9 @@ select#f-sector{min-width:150px}
       <h3>v2 changelog (improvements &amp; fixes)</h3>
       <ul style="font-size:12px;line-height:1.7;padding-left:20px;color:var(--text-dim)">
         <li><strong style="color:var(--accent)">NEW</strong> Web search feature &mdash; Screener and Analyst now pull recent news (last 30 days, top 5 articles per ticker) from Finnhub and pass it to the AI, so analysis reflects current events</li>
+        <li><strong style="color:var(--accent)">NEW</strong> PWA install support &mdash; install on Android/iOS home screen, works offline; upload <code>sw.js</code> alongside the HTML to enable "Install app" in Chrome</li>
         <li><strong style="color:var(--accent)">NEW</strong> Groq promoted from "mock only" to real tier &mdash; does the fast/easy work (screener theses); strong models (Claude/ChatGPT/DeepSeek/GLM) do the heavy lifting and verify</li>
-        <li><strong style="color:var(--accent)">FIX</strong> Groq model updated <code>llama-3.3-70b-versatile</code> &rarr; <code>llama-3.1-8b-instant</code> (the old model returned 404)</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Groq model updated to use current 2026 models (<code>openai/gpt-oss-20b</code> primary) — Groq deprecated both <code>llama-3.3-70b-versatile</code> and <code>llama-3.1-8b-instant</code> in mid-2026; the tool now tries multiple models in sequence so it self-heals when Groq retires models</li>
         <li><strong style="color:var(--accent)">NEW</strong> Beginner-friendly Guide &mdash; step-by-step mock vs. live walkthrough, plain-English agent descriptions, common workflows</li>
         <li><strong style="color:var(--accent)">NEW</strong> Tactical Agent &mdash; ranks top 3 REITs to buy now from your portfolio &amp; risk profile</li>
         <li><strong style="color:var(--accent)">NEW</strong> Order Router Agent &mdash; recommends order type, size, limit, stop, TIF</li>
@@ -782,12 +833,23 @@ function populateSettingsForm(){
 }
 
 /* ================= LLM PROVIDER ROUTING ================= */
+// Groq has been aggressively retiring models (llama-3.3-70b-versatile and llama-3.1-8b-instant
+// were both deprecated June 2026, Llama 4 Scout followed in July 2026). To make the tool resilient
+// to future Groq deprecations, we maintain a list of current models and try them in order.
+// As of late 2026, these are the stable free-tier Groq models.
+const GROQ_MODELS = [
+  'openai/gpt-oss-20b',              // fast, lightweight — best for screener theses
+  'qwen/qwen3-32b',                  // Qwen 3 32B — solid fallback
+  'openai/gpt-oss-120b',             // larger, stronger
+  'moonshotai/kimi-k2-instruct',     // Kimi K2
+  'llama-3.3-70b-versatile',         // legacy — works for Enterprise tier only
+];
 const PROVIDERS = {
   deepseek: {label:'DeepSeek',  type:'openai',    url:'https://api.deepseek.com/chat/completions',                 model:'deepseek-chat'},
   glm:      {label:'GLM-4.5',   type:'openai',    url:'https://open.bigmodel.cn/api/paas/v4/chat/completions',     model:'glm-4.5'},
   claude:   {label:'Claude',    type:'anthropic', url:'https://api.anthropic.com/v1/messages',                     model:'claude-3-5-sonnet-latest'},
   chatgpt:  {label:'ChatGPT',   type:'openai',    url:'https://api.openai.com/v1/chat/completions',                model:'gpt-4o-mini'},
-  groq:     {label:'Groq',      type:'openai',    url:'https://api.groq.com/openai/v1/chat/completions',           model:'llama-3.1-8b-instant'}
+  groq:     {label:'Groq',      type:'groq',      url:'https://api.groq.com/openai/v1/chat/completions',           model:GROQ_MODELS[0]}
 };
 // Tiered priority per agent role.
 // Groq (fast, lightweight) does the EASY work: screener thesis, news summaries.
@@ -844,10 +906,46 @@ async function callAnthropic(cfg, apiKey, systemPrompt, userPrompt, maxTokens){
   if(!data.content) throw new Error('Empty Anthropic response');
   return data.content.filter(b=>b.type==='text').map(b=>b.text||'').join('\n');
 }
+// Groq-specific caller: tries multiple models in sequence.
+// Groq has deprecated many models (llama-3.3-70b-versatile, llama-3.1-8b-instant,
+// llama-4-scout-17b all retired in 2026). This function tries each model in
+// GROQ_MODELS until one works, making the tool self-healing when Groq retires models.
+async function callGroq(cfg, apiKey, systemPrompt, userPrompt, maxTokens){
+  let lastErr = null;
+  for(const modelName of GROQ_MODELS){
+    try{
+      const res = await fetch(cfg.url, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+        body: JSON.stringify({
+          model: modelName,
+          temperature: 0.2,
+          max_tokens: maxTokens || 2500,
+          messages: [{role:'system',content:systemPrompt},{role:'user',content:userPrompt}]
+        })
+      });
+      if(!res.ok){
+        const err = await httpError(res);
+        // If it's a model_not_found (404), try the next model
+        if(res.status === 404 || res.status === 400){ lastErr = err; continue; }
+        throw err; // other errors (auth, rate limit) — don't try other models
+      }
+      const data = await res.json();
+      if(!data.choices || !data.choices[0]) throw new Error('Empty Groq response');
+      return data.choices[0].message.content;
+    }catch(e){
+      lastErr = e;
+      // Network errors — try next model
+      continue;
+    }
+  }
+  throw new Error('All Groq models failed (tried '+GROQ_MODELS.length+' models). Last error: '+(lastErr?lastErr.message:'unknown')+'. Check console.groq.com/docs/models for current models.');
+}
 async function callProvider(id, systemPrompt, userPrompt, opts){
   const cfg = PROVIDERS[id];
   const key = settings[id];
   if(cfg.type === 'anthropic') return await callAnthropic(cfg, key, systemPrompt, userPrompt, opts && opts.maxTokens);
+  if(cfg.type === 'groq') return await callGroq(cfg, key, systemPrompt, userPrompt, opts && opts.maxTokens);
   return await callOpenAICompatible(cfg, key, systemPrompt, userPrompt, opts && opts.maxTokens);
 }
 // Runs the fallback chain for a role; returns {provider, mode, text} or throws if every step fails.
@@ -2614,6 +2712,22 @@ populateSectorFilter();
 renderChainStatus();
 renderPortfolio();
 clearChart('Load a symbol to see its price chart.');
+
+/* ================= SERVICE WORKER (for PWA install + offline) ================= */
+// Registers ./sw.js if present. This makes the app installable on Android/iOS
+// and enables offline caching. If sw.js is not uploaded alongside this HTML,
+// registration fails silently — the app still works, just not installable as a PWA.
+// To enable full PWA install: upload the sw.js file (provided in the Guide tab)
+// to the same GitHub Pages directory as this HTML file.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('Service Worker registered — app is installable as a PWA.');
+    }).catch(err => {
+      console.warn('Service Worker not registered (upload sw.js for full PWA install):', err.message);
+    });
+  });
+}
 
 // Screener tab
 $('btn-run-screen').addEventListener('click', e=> withSpinner(e.target, runScreener));
