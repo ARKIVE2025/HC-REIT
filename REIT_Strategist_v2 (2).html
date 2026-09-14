@@ -1,0 +1,2665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REIT Strategist v2</title>
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Live REIT screener with AI Screener, Analyst, Tactical, and Order Router agents. Real market data plus broker integration. Not investment advice.">
+<style>
+:root{
+  --bg:#0b1220; --panel:#121a2b; --panel-alt:#182338; --border:#23304a;
+  --text:#e6ecf5; --text-dim:#7a8ba8; --accent:#3ddc97; --accent-dim:#1a3d2e;
+  --danger:#e05555; --danger-dim:#3d1a1a; --purple:#a78bfa; --blue:#3b82f6;
+  --yellow:#f59e0b; --cyan:#06b6d4; --orange:#fb923c;
+  --mono:"SF Mono","Cascadia Code","Consolas",monospace;
+  --sans:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;display:flex;flex-direction:column}
+button{font-family:var(--sans);cursor:pointer}
+input,select,textarea{font-family:var(--mono)}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:48px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;flex-wrap:wrap;gap:8px}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:28px;height:28px;border-radius:6px;background:rgba(61,220,151,.15);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px}
+.logo-text{font-weight:700;font-size:15px}
+.logo-text span{color:var(--accent)}
+.live-badge{font-size:9px;background:rgba(61,220,151,.1);color:var(--accent);border:1px solid rgba(61,220,151,.3);padding:2px 8px;border-radius:4px;font-weight:600;letter-spacing:.04em}
+nav{display:flex;gap:2px;flex-wrap:wrap}
+nav button{background:none;border:none;color:var(--text-dim);padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}
+nav button:hover{color:var(--text);background:var(--panel-alt)}
+nav button.active{background:rgba(61,220,151,.12);color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;padding:16px;gap:16px}
+.tab{display:none;flex-direction:column;gap:14px}
+.tab.active{display:flex}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.card h3{font-size:13px;margin-bottom:10px;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3 .sub{font-size:10px;color:var(--text-dim);font-weight:400}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:11px;color:var(--text-dim);display:block;margin-bottom:3px}
+input,select{background:var(--panel-alt);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:7px 9px;min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:2px}
+.btn{border:1px solid var(--border);background:var(--panel-alt);color:var(--text);border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;transition:all .12s}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#04140c;border-color:var(--accent)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-mock{background:var(--purple);color:#160e2b;border-color:var(--purple)}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-trade{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-trade:hover{filter:brightness(1.1)}
+.btn-sm{padding:4px 10px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--text-dim);font-size:10px;font-weight:600;letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);vertical-align:middle}
+tr:hover td{background:var(--panel-alt)}
+.r{text-align:right}
+.up{color:var(--accent)}
+.down{color:var(--danger)}
+.pill{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--panel-alt);border:1px solid var(--border);color:var(--text-dim);font-weight:600}
+.pill.on{color:var(--accent);border-color:rgba(61,220,151,.4)}
+.pill.off{color:var(--text-dim)}
+.pill.buy{color:var(--accent);border-color:rgba(61,220,151,.5);background:rgba(61,220,151,.08)}
+.pill.hold{color:var(--yellow);border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.08)}
+.pill.avoid{color:var(--danger);border-color:rgba(224,85,85,.5);background:rgba(224,85,85,.08)}
+.thesis{font-size:11px;color:var(--text-dim);max-width:340px;line-height:1.4}
+.verdict-box{border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--panel-alt)}
+.verdict-box h4{font-size:12px;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.verdict-box pre{white-space:pre-wrap;font-family:var(--sans);font-size:12.5px;line-height:1.6}
+.chain-line{font-size:11px;color:var(--text-dim);font-family:var(--mono)}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+.status-dot.on{background:var(--accent)}
+.status-dot.off{background:var(--text-dim)}
+.disclaimer{font-size:10px;color:var(--text-dim);line-height:1.5;border-top:1px dashed var(--border);padding-top:8px;margin-top:6px}
+.disclaimer.warn{color:var(--yellow);border-top-color:rgba(245,158,11,.3)}
+#chart-canvas{width:100%;height:220px;display:block}
+.msg{font-size:11px;color:var(--text-dim);font-style:italic}
+.msg.err{color:var(--danger);font-style:normal}
+.msg.ok{color:var(--accent);font-style:normal}
+select#f-sector{min-width:150px}
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn[disabled] .spinner{opacity:.9}
+.pick-card{border:1px solid var(--border);border-radius:var(--radius);padding:12px;background:var(--panel-alt);margin-bottom:10px}
+.pick-card .pick-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.pick-card .pick-rank{font-size:18px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.pick-card .pick-ticker{font-weight:700;font-size:14px}
+.pick-card .pick-name{font-size:11px;color:var(--text-dim)}
+.pick-card .pick-thesis{font-size:12px;line-height:1.5;margin:6px 0}
+.pick-card .pick-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text-dim);margin-bottom:8px}
+.pick-card .pick-meta b{color:var(--text);font-family:var(--mono)}
+.alloc-bar{height:14px;background:var(--panel-alt);border-radius:4px;overflow:hidden;display:flex}
+.alloc-bar > div{height:100%;transition:width .3s}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--panel-alt);border-radius:6px;border:1px solid var(--border);min-width:120px}
+.kpi .lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em}
+.kpi .val{font-size:18px;font-weight:700;font-family:var(--mono)}
+.kpi .val.up{color:var(--accent)}
+.kpi .val.down{color:var(--danger)}
+.kpi-row{display:flex;gap:10px;flex-wrap:wrap}
+.trade-result{font-family:var(--mono);font-size:11.5px;line-height:1.6;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;max-height:300px;overflow-y:auto;white-space:pre-wrap}
+.tab-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:780px){.tab-section-grid{grid-template-columns:1fr}}
+.hint{font-size:10px;color:var(--text-dim);margin-top:4px;line-height:1.4}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* ===================== MOBILE RESPONSIVE ===================== */
+/* Tablet and below */
+@media(max-width:780px){
+  header{padding:8px 12px;gap:6px}
+  .logo-text{font-size:14px}
+  .live-badge{display:none}              /* save vertical space on small screens */
+  nav button{padding:10px 12px;font-size:12px;min-height:44px}  /* HIG-compliant tap target */
+  main{padding:12px;gap:12px}
+  .card{padding:12px}
+  .kpi{min-width:100px;flex:1 1 calc(50% - 10px)}
+  .kpi .val{font-size:16px}
+  .tab-section-grid{gap:12px}
+  table{font-size:11px}
+  th,td{padding:6px 5px}
+  .thesis{max-width:200px}
+}
+
+/* Phone */
+@media(max-width:600px){
+  header{padding:6px 10px;min-height:auto}
+  .logo-text{font-size:13px}
+  .logo-icon{width:24px;height:24px;font-size:13px}
+  nav{width:100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  nav::-webkit-scrollbar{height:3px}
+  nav button{padding:10px 11px;font-size:11.5px;min-height:42px;white-space:nowrap;flex-shrink:0}
+  main{padding:10px;gap:10px}
+  .card{padding:10px}
+  .card h3{font-size:12px}
+  .row{gap:8px}
+  .field{flex:1 1 100% !important}        /* stack fields vertically on phone */
+  input,select{width:100%}
+  .btn{padding:10px 14px;font-size:12px;min-height:42px}  /* bigger tap targets */
+  .btn-sm{padding:8px 10px;min-height:36px}
+  .kpi{min-width:calc(50% - 5px);flex:1 1 calc(50% - 5px);padding:8px 10px}
+  .kpi .val{font-size:14px}
+  .kpi .lbl{font-size:9px}
+  /* Tables: make them scrollable horizontally instead of squishing */
+  table{font-size:11px}
+  th,td{padding:5px 4px;white-space:nowrap}
+  th{font-size:9.5px}
+  .thesis{max-width:160px;font-size:10.5px}
+  /* Pick cards: rank + ticker on their own row */
+  .pick-card{padding:10px}
+  .pick-card .pick-rank{font-size:16px}
+  .pick-card .pick-ticker{font-size:13px}
+  .pick-card .pick-thesis{font-size:11.5px}
+  /* Chart canvas shorter on phone */
+  #chart-canvas{height:180px}
+  /* Trade tab order ticket stacks vertically */
+  #tab-trade .row .field{flex:1 1 100%}
+  /* Allocation legend wraps */
+  .alloc-bar{height:18px}
+  /* Verdict box padding */
+  .verdict-box{padding:10px}
+  .verdict-box pre{font-size:11.5px}
+  /* Safe area for notched phones (iPhone X+) */
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  header{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+}
+
+/* Very small phones (iPhone 5/SE 1st gen, 320px) */
+@media(max-width:360px){
+  nav button{padding:9px 9px;font-size:11px}
+  .kpi{min-width:calc(100% - 5px);flex:1 1 100%}    /* stack KPIs vertically */
+  .logo-text{font-size:12px}
+  table{font-size:10.5px}
+  th,td{padding:4px 3px}
+}
+
+/* Touch device: disable hover-only states that get "stuck" on tap, and enforce tap target minimums */
+@media(hover:none){
+  tr:hover td{background:transparent}
+  .btn:hover{border-color:var(--border);filter:none}
+  nav button:hover{color:var(--text-dim);background:transparent}
+  /* Enforce HIG-compliant tap targets on ALL touch devices, regardless of width (covers tablets) */
+  .btn{min-height:42px;padding:10px 14px}
+  .btn-sm{min-height:36px;padding:8px 10px}
+  nav button{min-height:44px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">&#127970;</div>
+    <div class="logo-text">REIT<span> Strategist</span> <span style="color:var(--text-dim);font-size:10px;font-weight:400">v2</span></div>
+    <span class="live-badge">LIVE DATA</span>
+  </div>
+  <nav id="tabs">
+    <button class="active" data-tab="screener">Screener</button>
+    <button data-tab="analyst">Watch &amp; Analyst</button>
+    <button data-tab="bestpicks">Best Picks</button>
+    <button data-tab="trade">Trade</button>
+    <button data-tab="portfolio">Portfolio</button>
+    <button data-tab="income">Income</button>
+    <button data-tab="settings">Settings</button>
+    <button data-tab="guide">Guide</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- SCREENER TAB -->
+  <section class="tab active" id="tab-screener">
+    <div class="card">
+      <h3>Discovery Agent &mdash; find REIT candidates <span class="sub">live Finnhub quotes + fundamentals</span></h3>
+      <div class="row">
+        <div class="field"><label>Sector</label>
+          <select id="f-sector">
+            <option value="">All sectors</option>
+          </select>
+        </div>
+        <div class="field"><label>Min dividend yield %</label><input id="f-yield" type="number" step="0.1" value="3" style="width:90px"></div>
+        <div class="field" style="flex:1"></div>
+        <button class="btn btn-primary" id="btn-run-screen">&#128269; Discover REITs</button>
+      </div>
+      <div class="msg" id="screen-status"></div>
+    </div>
+    <div class="card">
+      <h3>Candidates <span class="sub">click Watch to deep-dive, Trade to route an order, or + to add to watchlist</span></h3>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Ticker</th><th>Company</th><th>Sector</th>
+          <th class="r">Price</th><th class="r">Chg</th><th class="r">Div Yield</th>
+          <th>Screener Thesis</th><th class="r">Actions</th>
+        </tr></thead>
+        <tbody id="screen-tbody"></tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYST / WATCH TAB -->
+  <section class="tab" id="tab-analyst">
+    <div class="card">
+      <div class="row">
+        <div class="field"><label>Ticker</label><input id="wa-symbol" style="width:100px;text-transform:uppercase" placeholder="e.g. O" maxlength="6"></div>
+        <button class="btn" id="btn-load-symbol">Load Quote &amp; Chart</button>
+        <button class="btn" id="btn-watchlist-add" title="Add to watchlist">+ Watchlist</button>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary" id="btn-analyze">&#129302; Run Analyst Agent</button>
+        <button class="btn btn-trade" id="btn-analyst-trade" style="display:none">&#128188; Trade this</button>
+      </div>
+      <div class="msg" id="wa-status"></div>
+    </div>
+    <div class="card">
+      <h3 id="wa-title">No symbol loaded</h3>
+      <canvas id="chart-canvas"></canvas>
+    </div>
+    <div class="card" id="verdict-card" style="display:none">
+      <div class="verdict-box">
+        <h4 id="verdict-provider"></h4>
+        <pre id="verdict-text"></pre>
+      </div>
+      <div class="disclaimer">AI output is generated analysis, not investment advice. Verify independently before acting.</div>
+    </div>
+  </section>
+
+  <!-- BEST PICKS TAB -->
+  <section class="tab" id="tab-bestpicks">
+    <div class="card">
+      <h3>Tactical Agent &mdash; top 3 REITs to buy now <span class="sub">uses your portfolio, cash, risk profile &amp; live data</span></h3>
+      <div class="row">
+        <div class="field"><label>Risk profile</label>
+          <select id="bp-risk" style="min-width:140px">
+            <option value="Conservative">Conservative (income-focused)</option>
+            <option value="Moderate" selected>Moderate (balanced)</option>
+            <option value="Aggressive">Aggressive (growth-focused)</option>
+          </select>
+        </div>
+        <div class="field"><label>Available cash $</label><input id="bp-cash" type="number" step="100" value="10000" style="width:120px"></div>
+        <div class="field"><label>Time horizon</label>
+          <select id="bp-horizon" style="min-width:140px">
+            <option value="3-6 months">3-6 months</option>
+            <option value="6-12 months" selected>6-12 months</option>
+            <option value="1-3 years">1-3 years</option>
+            <option value="3+ years">3+ years</option>
+          </select>
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary" id="btn-bestpicks">&#127942; Run Tactical Agent</button>
+      </div>
+      <div class="hint">Tactical Agent pulls live quotes for the curated REIT universe, scores them against your portfolio's sector exposure and risk profile, and asks the LLM strategist to rank the top 3 with entry strategy. May take 30-60 seconds.</div>
+      <div class="msg" id="bp-status"></div>
+    </div>
+    <div id="bp-results"></div>
+  </section>
+
+  <!-- TRADE TAB -->
+  <section class="tab" id="tab-trade">
+    <div class="card">
+      <h3>Broker connection <span class="sub">paper trading recommended for testing</span></h3>
+      <div class="row">
+        <div class="field"><label>Broker</label>
+          <select id="br-broker" style="min-width:200px">
+            <option value="alpaca-paper">Alpaca &mdash; Paper trading</option>
+            <option value="alpaca-live">Alpaca &mdash; Live (real money)</option>
+            <option value="tradier-sandbox">Tradier &mdash; Sandbox (paper)</option>
+            <option value="tradier-live">Tradier &mdash; Live (real money)</option>
+            <option value="fidelity-manual">Fidelity &mdash; Manual (no API)</option>
+          </select>
+        </div>
+        <button class="btn" id="btn-br-connect">Connect &amp; load account</button>
+        <button class="btn btn-mock" id="btn-br-refresh">Refresh</button>
+        <button class="btn" id="btn-br-csv" style="display:none">Import CSV positions</button>
+        <input type="file" id="br-csv-file" accept=".csv,text/csv" style="display:none">
+        <div style="flex:1"></div>
+        <span class="pill off" id="br-status-pill">not connected</span>
+      </div>
+      <div class="msg" id="br-status"></div>
+      <div class="hint" id="br-fidelity-hint" style="display:none;margin-top:8px">Fidelity does not offer a public retail brokerage API. This mode uses positions imported via CSV (export from Fidelity.com &rarr; Positions &rarr; Download) for tracking and Order Router recommendations; trades must be placed manually at Fidelity.com. The Order Router Agent still works &mdash; clicking "Place order" shows a copyable summary to paste into Fidelity's order ticket.</div>
+      <div class="kpi-row" id="br-account-kpis" style="display:none;margin-top:12px">
+        <div class="kpi"><span class="lbl">Cash</span><span class="val" id="br-cash">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Buying power</span><span class="val" id="br-bp">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Portfolio value</span><span class="val" id="br-pv">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Equity</span><span class="val" id="br-equity">&mdash;</span></div>
+      </div>
+    </div>
+
+    <!-- Manual order summary modal (used by Fidelity manual mode) -->
+    <div id="manual-order-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px">
+      <div class="card" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto">
+        <h3>Manual order summary <span class="sub">place this at Fidelity.com</span></h3>
+        <div class="verdict-box" id="manual-order-content" style="margin:10px 0"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-primary" id="btn-copy-order">Copy to clipboard</button>
+          <a href="https://digital.fidelity.com/ftgw/digital/portfolio/positionsdetail" target="_blank" rel="noopener" class="btn btn-trade" style="text-decoration:none">Open Fidelity.com &rarr;</a>
+          <div style="flex:1"></div>
+          <button class="btn" id="btn-close-manual">Close</button>
+        </div>
+        <div class="msg" id="manual-copy-status" style="margin-top:8px"></div>
+        <div class="disclaimer warn">Fidelity does not offer a public brokerage API. This summary is for manual entry only. Verify all details before submitting at Fidelity.</div>
+      </div>
+    </div>
+
+
+    <div class="tab-section-grid">
+      <div class="card">
+        <h3>Order ticket <span class="sub">manual or Route via Agent</span></h3>
+        <div class="row">
+          <div class="field"><label>Ticker</label><input id="ord-symbol" style="width:90px;text-transform:uppercase" maxlength="6"></div>
+          <div class="field"><label>Side</label>
+            <select id="ord-side" style="width:90px"><option value="buy">Buy</option><option value="sell">Sell</option></select>
+          </div>
+          <div class="field"><label>Qty</label><input id="ord-qty" type="number" step="1" min="1" value="10" style="width:80px"></div>
+          <div class="field"><label>Type</label>
+            <select id="ord-type" style="width:110px">
+              <option value="market">Market</option>
+              <option value="limit">Limit</option>
+              <option value="stop">Stop</option>
+              <option value="stop_limit">Stop Limit</option>
+            </select>
+          </div>
+          <div class="field"><label>Limit price</label><input id="ord-limit" type="number" step="0.01" style="width:90px" disabled></div>
+          <div class="field"><label>Stop price</label><input id="ord-stop" type="number" step="0.01" style="width:90px" disabled></div>
+          <div class="field"><label>TIF</label>
+            <select id="ord-tif" style="width:90px"><option value="day">Day</option><option value="gtc">GTC</option><option value="ioc">IOC</option><option value="fok">FOK</option></select>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text)">
+              <input type="checkbox" id="ord-drip" style="width:auto"> DRIP (reinvest)
+            </label>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn btn-trade" id="btn-route-agent">&#129302; Route via Agent</button>
+          <button class="btn btn-primary" id="btn-place-order">Place order</button>
+          <span class="hint" id="ord-est-cost"></span>
+        </div>
+        <div class="msg" id="ord-status"></div>
+        <div class="verdict-box" id="route-card" style="display:none;margin-top:10px">
+          <h4 id="route-provider"></h4>
+          <pre id="route-text"></pre>
+          <div class="disclaimer warn">Order Router is an AI suggestion, not a guarantee of execution or suitability. Verify before placing.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Open positions <span class="sub" id="br-positions-count">0</span></h3>
+        <div style="overflow-x:auto;max-height:240px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Ticker</th><th class="r">Qty</th><th class="r">Avg cost</th><th class="r">Current</th><th class="r">Mkt value</th><th class="r">P/L</th><th></th></tr></thead>
+          <tbody id="br-positions-tbody"><tr><td colspan="7" class="msg" style="text-align:center;padding:20px">Not connected</td></tr></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Recent orders <span class="sub" id="br-orders-count">0</span></h3>
+      <div style="overflow-x:auto;max-height:260px;overflow-y:auto">
+      <table>
+        <thead><tr><th>Time</th><th>Ticker</th><th>Side</th><th class="r">Qty</th><th>Type</th><th class="r">Limit</th><th>Status</th><th class="r">Filled</th></tr></thead>
+        <tbody id="br-orders-tbody"><tr><td colspan="8" class="msg" style="text-align:center;padding:20px">Not connected</td></tr></tbody>
+      </table>
+      </div>
+      <div class="trade-result" id="br-log" style="margin-top:10px;display:none"></div>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO TAB -->
+  <section class="tab" id="tab-portfolio">
+    <div class="card">
+      <h3>Your portfolio <span class="sub">used by Tactical &amp; Order Router agents &mdash; stored locally in your browser</span></h3>
+      <div class="row">
+        <div class="field"><label>Risk profile</label>
+          <select id="pf-risk" style="min-width:140px">
+            <option value="Conservative">Conservative</option>
+            <option value="Moderate" selected>Moderate</option>
+            <option value="Aggressive">Aggressive</option>
+          </select>
+        </div>
+        <div class="field"><label>Available cash $</label><input id="pf-cash" type="number" step="100" value="10000" style="width:120px"></div>
+        <button class="btn" id="btn-pf-sync">&#128260; Sync prices</button>
+        <button class="btn btn-danger btn-sm" id="btn-pf-clear">Clear all</button>
+      </div>
+      <div class="kpi-row" style="margin-top:12px">
+        <div class="kpi"><span class="lbl">Holdings value</span><span class="val" id="pf-holdings-val">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Total cash</span><span class="val" id="pf-cash-val">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Total net worth</span><span class="val" id="pf-net-val">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Unrealized P/L</span><span class="val" id="pf-pl-val">&mdash;</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Add holding</h3>
+      <div class="row">
+        <div class="field"><label>Ticker</label><input id="pf-add-sym" style="width:100px;text-transform:uppercase" maxlength="6" placeholder="O"></div>
+        <div class="field"><label>Shares</label><input id="pf-add-shares" type="number" step="0.0001" min="0" value="10" style="width:100px"></div>
+        <div class="field"><label>Cost basis $</label><input id="pf-add-cost" type="number" step="0.01" min="0" value="50.00" style="width:110px"></div>
+        <button class="btn btn-primary" id="btn-pf-add">Add holding</button>
+      </div>
+      <div class="msg" id="pf-add-status"></div>
+    </div>
+    <div class="card">
+      <h3>Holdings <span class="sub">live prices via Finnhub &mdash; income columns populated when Income tab is synced</span></h3>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Ticker</th><th>Sector</th><th class="r">Shares</th><th class="r">Cost</th><th class="r">Current</th><th class="r">Mkt value</th><th class="r">P/L</th><th class="r">P/L %</th><th class="r">Yield on cost</th><th></th></tr></thead>
+        <tbody id="pf-tbody"><tr><td colspan="10" class="msg" style="text-align:center;padding:20px">No holdings yet &mdash; add one above</td></tr></tbody>
+      </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Sector allocation</h3>
+      <div class="alloc-bar" id="pf-alloc-bar"></div>
+      <div id="pf-alloc-legend" style="margin-top:8px;font-size:11px;color:var(--text-dim);line-height:1.7"></div>
+    </div>
+  </section>
+
+  <!-- INCOME TAB -->
+  <section class="tab" id="tab-income">
+    <div class="card">
+      <div class="row">
+        <button class="btn btn-primary" id="btn-inc-refresh">&#128260; Sync dividends &amp; income</button>
+        <div class="field" style="flex:1"></div>
+        <span class="pill off" id="inc-status-pill">not synced</span>
+      </div>
+      <div class="msg" id="inc-status"></div>
+      <div class="kpi-row" style="margin-top:12px">
+        <div class="kpi"><span class="lbl">Projected annual income</span><span class="val up" id="inc-kpi-annual">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Monthly average</span><span class="val" id="inc-kpi-monthly">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Blended yield on cost</span><span class="val" id="inc-kpi-yoc">&mdash;</span></div>
+        <div class="kpi"><span class="lbl">Next ex-div in</span><span class="val" id="inc-kpi-next">&mdash;</span></div>
+      </div>
+    </div>
+
+    <div class="tab-section-grid">
+      <div class="card">
+        <h3>Upcoming ex-dividend calendar <span class="sub">next 60 days &mdash; holdings + watchlist</span></h3>
+        <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Ex-date</th><th>Countdown</th><th>Ticker</th><th>Side</th><th class="r">Est. amount</th><th>Freq</th><th>Action</th></tr></thead>
+          <tbody id="inc-calendar-tbody"><tr><td colspan="7" class="msg" style="text-align:center;padding:20px">Sync to load</td></tr></tbody>
+        </table>
+        </div>
+        <div class="hint" style="margin-top:6px">To capture a dividend you must own shares <strong>before</strong> the ex-date. Buy the day before to be safe.</div>
+      </div>
+      <div class="card">
+        <h3>Projected monthly income <span class="sub">next 12 months from current holdings</span></h3>
+        <canvas id="inc-monthly-canvas" style="width:100%;height:240px;display:block"></canvas>
+        <div class="hint" style="margin-top:6px" id="inc-monthly-legend">Sync to load</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Holdings income breakdown <span class="sub">yield on cost, frequency, dividend growth</span></h3>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Ticker</th><th>Freq</th><th class="r">Shares</th><th class="r">Annual rate</th>
+          <th class="r">Curr yield</th><th class="r">Yield on cost</th>
+          <th class="r">Annual $</th><th class="r">3yr CAGR</th><th class="r">5yr CAGR</th>
+          <th class="r">Streak</th><th>10yr history</th><th></th>
+        </tr></thead>
+        <tbody id="inc-holdings-tbody"><tr><td colspan="12" class="msg" style="text-align:center;padding:20px">Sync to load</td></tr></tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS TAB -->
+  <section class="tab" id="tab-settings">
+    <div class="card">
+      <h3>Market data</h3>
+      <div class="row">
+        <div class="field" style="flex:1"><label>Finnhub API key</label><input id="s-finnhub" type="password" placeholder="Free key at finnhub.io"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>LLM strategist providers</h3>
+      <p class="msg" style="margin-bottom:10px">Fill in whichever you have. The system auto-detects active keys and builds a smart chain. <strong>Groq</strong> is the fast, lightweight model &mdash; it does the easy work (screener theses, news summaries) at high speed. <strong>Claude, ChatGPT, DeepSeek, and GLM</strong> are the strong models &mdash; they do the heavy lifting (analyst verdicts, tactical ranking, order routing) and verify the output. You only need one key to start; add more for automatic fallback.</p>
+      <div class="row"><div class="field" style="flex:1"><label>DeepSeek API key</label><input id="s-deepseek" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>GLM (Zhipu) API key</label><input id="s-glm" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>Claude (Anthropic) API key</label><input id="s-claude" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>ChatGPT (OpenAI) API key</label><input id="s-chatgpt" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>Groq API key (fast, lightweight tasks)</label><input id="s-groq" type="password"></div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-primary" id="btn-save-settings">Save</button>
+        <button class="btn" id="btn-test-mock">Test Groq connection</button>
+      </div>
+      <div class="msg" id="settings-saved-msg"></div>
+    </div>
+    <div class="card">
+      <h3>Broker API keys</h3>
+      <p class="msg" style="margin-bottom:10px">Alpaca and Tradier both support direct browser calls (CORS-enabled). Use paper/sandbox keys for testing. Live keys trade real money &mdash; you have been warned.</p>
+      <div class="row"><div class="field" style="flex:1"><label>Alpaca API key ID</label><input id="s-alpaca-key" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>Alpaca API secret</label><input id="s-alpaca-secret" type="password"></div></div>
+      <div class="row"><div class="field" style="flex:1"><label>Tradier access token</label><input id="s-tradier" type="password"></div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-primary" id="btn-save-broker">Save broker keys</button>
+      </div>
+      <div class="msg" id="broker-saved-msg"></div>
+    </div>
+    <div class="card">
+      <h3>Active chains</h3>
+      <div id="chain-status"></div>
+    </div>
+  </section>
+
+  <!-- GUIDE TAB -->
+  <section class="tab" id="tab-guide">
+    <div class="card">
+      <h3>Welcome &mdash; what this tool does</h3>
+      <p style="font-size:13px;line-height:1.7">REIT Strategist helps you find, research, and invest in <strong>REITs</strong> (Real Estate Investment Trusts) &mdash; companies that own real estate (malls, apartments, data centers, etc.) and pay you dividends from the rent they collect. Think of it as your personal REIT research assistant: it pulls live market data and news, uses AI to analyze each REIT, and helps you place trades at your broker.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:8px"><strong>You don't need to be an expert.</strong> The tool explains everything in plain English. You tell it your goals (income vs. growth, how much cash you have), and the AI agents do the heavy lifting &mdash; screening, analysis, ranking, and order suggestions.</p>
+    </div>
+
+    <div class="card">
+      <h3>Getting started in 5 minutes</h3>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li><strong>Get a free Finnhub API key</strong> &mdash; go to <code>finnhub.io</code>, sign up, copy your API key. This is what powers the live stock prices and news. Free tier is fine.</li>
+        <li><strong>Get at least one AI key</strong> &mdash; the easiest is <strong>Groq</strong> (free at <code>console.groq.com</code>, very fast). For smarter analysis, add Claude (<code>anthropic.com</code>) or ChatGPT (<code>platform.openai.com</code>). You can start with just Groq and add more later.</li>
+        <li><strong>Go to Settings</strong> &mdash; paste your Finnhub key and your AI key(s). Click Save.</li>
+        <li><strong>Run the Screener</strong> &mdash; go to the Screener tab, pick a sector (or "All sectors"), set a minimum dividend yield (try 3%), and click "Discover REITs." The tool fetches live prices + recent news for 24 REITs and writes a 1-sentence thesis for each.</li>
+        <li><strong>Deep-dive any REIT</strong> &mdash; click "Watch" on any candidate to load its price chart, then click "Run Analyst Agent" for a full research report with a Buy/Hold/Avoid verdict.</li>
+      </ol>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:8px">That's the basics. The other tabs (Best Picks, Trade, Portfolio, Income) build on this &mdash; explained below.</p>
+    </div>
+
+    <div class="card">
+      <h3>How to use this tool in MOCK mode (safe testing, no real money)</h3>
+      <p style="font-size:13px;line-height:1.7"><strong>Start here if you're new.</strong> Mock mode lets you test the entire tool &mdash; screening, analysis, trade suggestions, portfolio tracking &mdash; without risking any real money. Everything works the same; the only difference is trades are "paper" (fake).</p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px;margin-top:8px">
+        <li><strong>Open a free Alpaca paper trading account</strong> &mdash; go to <code>app.alpaca.markets</code>, sign up, and choose "Paper Account." You get $100,000 in fake money to practice with. No credit card, no risk.</li>
+        <li><strong>Get your Alpaca API keys</strong> &mdash; in Alpaca dashboard, go to "Your API Keys." Copy the Key ID and Secret.</li>
+        <li><strong>Add them to this tool</strong> &mdash; Settings tab &rarr; "Broker API keys" section &rarr; paste Alpaca Key ID and Secret &rarr; Save.</li>
+        <li><strong>Connect</strong> &mdash; Trade tab &rarr; select "Alpaca &mdash; Paper trading" &rarr; click "Connect &amp; load account." You'll see your $100,000 paper balance.</li>
+        <li><strong>Practice the full workflow:</strong> Run the Screener &rarr; pick a REIT &rgt; run the Analyst &rarr; go to Best Picks for top 3 &rarr; use the Order Router Agent to suggest a trade &rarr; click "Place order" &mdash; it executes in your paper account instantly. Check Portfolio and Income tabs to see how your fake holdings perform.</li>
+      </ol>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:8px"><strong>Why start here?</strong> You can test the AI's recommendations for weeks without risk. When you trust the system, switch to live mode (below). Paper trading is how professional traders learn &mdash; there's no shame in spending a month here.</p>
+    </div>
+
+    <div class="card">
+      <h3>How to use this tool in LIVE mode (real money)</h3>
+      <p style="font-size:13px;line-height:1.7"><strong>Only switch to live mode after you've paper-traded for at least 2-4 weeks</strong> and you're comfortable with how the AI agents behave. Real money means real risk.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:8px"><strong>You have two options for live trading:</strong></p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Option A &mdash; Fully automated (Alpaca Live or Tradier Live):</strong></p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li>Open a live brokerage account at <code>alpaca.markets</code> or <code>tradier.com</code>. Fund it with real money.</li>
+        <li>Get your live API keys from their dashboard.</li>
+        <li>Add them to Settings &rarr; Broker API keys &rarr; Save.</li>
+        <li>Trade tab &rarr; select "Alpaca &mdash; Live" or "Tradier &mdash; Live" &rarr; Connect. The tool will warn you that this is real money.</li>
+        <li>When you click "Place order," the trade executes at your broker with real money. Always review the Order Router Agent's suggestion before placing.</li>
+      </ol>
+      <p style="font-size:13px;line-height:1.7;margin-top:10px"><strong>Option B &mdash; Manual at Fidelity (or any broker without an API):</strong></p>
+      <ol style="font-size:13px;line-height:1.8;padding-left:20px">
+        <li>Select "Fidelity &mdash; Manual (no API)" in the Trade tab broker dropdown.</li>
+        <li>Click "Import CSV positions" to upload your Fidelity positions export (from Fidelity.com &rarr; Portfolio &rarr; Positions &rarr; Download). The tool parses it automatically &mdash; money market funds like SPAXX are filtered out.</li>
+        <li>Use the Order Router Agent as normal &mdash; it sees your Fidelity positions and sizes recommendations accordingly.</li>
+        <li>When you click "Place order," the tool shows a <strong>copyable summary</strong> (symbol, side, quantity, order type, limit price, TIF). Click "Copy to clipboard," then click "Open Fidelity.com &rarr;" and paste the details into Fidelity's order ticket. No real API needed &mdash; you're just using the AI for research and the tool for tracking.</li>
+      </ol>
+      <p style="font-size:12px;color:var(--yellow);margin-top:10px"><strong>Why no Fidelity API?</strong> Fidelity doesn't offer a public brokerage API for individual investors &mdash; only for registered investment advisors. This is a Fidelity policy, not a limitation of this tool. Same applies to Schwab, Robinhood, and Vanguard. If you want full automation, use Alpaca or Tradier; if you want Fidelity's great service and research, use manual mode.</p>
+    </div>
+
+    <div class="card">
+      <h3>Understanding the 4 AI agents (in plain English)</h3>
+      <p style="font-size:13px;line-height:1.7">The tool has four AI "agents" &mdash; each does a specific job. You can use them in order (Screener &rarr; Analyst &rarr; Best Picks &rarr; Trade) or jump to whichever you need:</p>
+      <ul style="font-size:13px;line-height:1.9;padding-left:20px;margin-top:6px">
+        <li><strong>Discovery Agent</strong> (Screener tab) &mdash; <em>"Find me REITs that match my criteria."</em> Pulls live prices + recent news for 24 REITs and writes a 1-sentence thesis for each. Fast &mdash; usually done in 10-20 seconds.</li>
+        <li><strong>Analyst Agent</strong> (Watch &amp; Analyst tab) &mdash; <em>"Write me a research report on this REIT."</em> Loads any ticker's chart + fundamentals + recent news, then produces a Dividend Safety Score (1-10), Growth Outlook, Key Risks, and a Buy/Hold/Avoid verdict. Takes 15-30 seconds.</li>
+        <li><strong>Tactical Agent</strong> (Best Picks tab) &mdash; <em>"What should I buy right now?"</em> Looks at your current portfolio, your cash, your risk profile, and ranks the top 3 REITs to buy today &mdash; with suggested allocation % and entry strategy. Takes 30-60 seconds.</li>
+        <li><strong>Order Router Agent</strong> (Trade tab) &mdash; <em>"What's the best way to place this trade?"</em> Looks at the current price, your broker account, and any Analyst verdict, then recommends the order type (market/limit/stop), quantity, limit price, and timing. Pre-fills the order ticket for you.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>How the AI models work together</h3>
+      <p style="font-size:13px;line-height:1.7">The tool uses a <strong>tiered system</strong> &mdash; fast lightweight models do the easy work, and stronger models do the heavy lifting and verify the output:</p>
+      <ul style="font-size:13px;line-height:1.9;padding-left:20px;margin-top:6px">
+        <li><strong>Groq</strong> (fast, lightweight) &mdash; does the <em>easy work</em>: screener theses, simple summaries. Very fast (500+ words/sec), free tier generous. Think of it as the research assistant who gathers info quickly.</li>
+        <li><strong>Claude, ChatGPT, DeepSeek, GLM</strong> (strong, thorough) &mdash; do the <em>heavy lifting</em>: analyst verdicts, tactical rankings, order routing. These models verify the analysis and make the final call. Think of them as the senior analysts who review the assistant's work.</li>
+      </ul>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px">You only need <strong>one</strong> AI key to start. If you only have Groq, it'll do everything (but the heavy analysis won't be as deep). If you add Claude or ChatGPT, the tool automatically uses Groq for simple tasks and the stronger model for complex ones &mdash; with automatic fallback if any provider fails. Add as many as you have for maximum reliability.</p>
+    </div>
+
+    <div class="card">
+      <h3>Common workflows</h3>
+      <p style="font-size:13px;line-height:1.7"><strong>"I want to find new REITs to buy"</strong> &rarr; Screener tab &rarr; pick sector + min yield &rarr; Discover &rarr; click "Watch" on interesting ones &rarr; run Analyst Agent &rarr; click "Trade this" if you like the verdict</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>"I want to know what to buy right now"</strong> &rarr; Best Picks tab &rarr; set risk profile + cash + horizon &rarr; Run Tactical Agent &rarr; review top 3 &rarr; click "Trade this" on the one you want</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>"I want to track my income"</strong> &rarr; Portfolio tab &rarr; add your holdings &rarr; Income tab &rarr; Sync &rarr; see your projected monthly income, ex-dividend calendar, yield on cost, and dividend growth streaks</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>"I want to test without risk"</strong> &rarr; Get Alpaca paper account &rarr; Settings &rarr; add Alpaca paper keys &rarr; Trade tab &rarr; connect &rarr; practice the full workflow with fake money</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>"I have Fidelity and want AI help"</strong> &rarr; Trade tab &rarr; select "Fidelity &mdash; Manual" &rarr; import CSV positions &rarr; use Order Router Agent for suggestions &rarr; copy summary to Fidelity.com</p>
+    </div>
+
+    <div class="card">
+      <h3>Where the data comes from (web search feature)</h3>
+      <p style="font-size:13px;line-height:1.7"><strong>Live prices &amp; fundamentals</strong> &mdash; Finnhub API (uses your key). Real-time quotes, dividend yield, payout ratio, debt/equity. Updated every time you run a screen or load a ticker.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Recent news (the "web search")</strong> &mdash; Finnhub's company-news endpoint pulls the 5 most recent news articles for each ticker from the last 30 days. These headlines + summaries are passed to the AI agents so their analysis reflects <em>current events</em> (earnings, dividend changes, acquisitions, downgrades), not just training-data knowledge. The Screener and Analyst both use this &mdash; you'll see "N news items" badges on the output.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Price charts</strong> &mdash; Finnhub first (paid plans), then Yahoo Finance (free, no key) as automatic fallback. If both fail, a clean today-snapshot panel is shown instead of an error.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Dividend history</strong> &mdash; Finnhub's <code>/stock/dividend2</code> (uses your key) with Yahoo Finance via CORS proxy as fallback. Powers the Income tab's 10-year history, CAGR, streaks, and ex-dividend predictions.</p>
+    </div>
+
+    <div class="card">
+      <h3>REIT dividend tax treatment (US) &mdash; important</h3>
+      <p style="font-size:13px;line-height:1.7">REIT dividends are <strong>not</strong> "qualified dividends" &mdash; they're taxed as <strong>ordinary income</strong> at your normal tax rate (up to 37%) plus a 3.8% surtax if you earn over $200k (single) / $250k (married). This is different from regular stock dividends, which get a lower rate (0/15/20%).</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>What this means for you:</strong> (1) Hold REITs in an IRA or Roth IRA when possible &mdash; this skips the tax drag entirely. (2) The "yield" you see in this app is pre-tax &mdash; subtract your tax rate to see what you actually keep. (3) Some REIT dividends are "return of capital" which is tax-deferred (lowers your cost basis, taxed later when you sell). Check the REIT's investor relations page for their annual tax letter.</p>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:6px">This is general info, not tax advice &mdash; talk to a CPA for your situation.</p>
+    </div>
+
+    <div class="card">
+      <h3>Brokers that work with this tool</h3>
+      <p style="font-size:13px;line-height:1.7"><strong>Alpaca</strong> (paper + live) &mdash; best for testing and automation. Free paper account with $100k fake money. Get keys at <code>app.alpaca.markets</code>. CORS-friendly (works from browser directly).</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Tradier</strong> (sandbox + live) &mdash; alternative to Alpaca. Sandbox for testing, live for real trades. Get a token at <code>tradier.com/products/brokerage-api</code>.</p>
+      <p style="font-size:13px;line-height:1.7;margin-top:6px"><strong>Fidelity</strong> (manual only) &mdash; no public API for retail accounts. Import positions via CSV export; place trades manually using the copyable order summary. Works fine for long-term holders who want AI research + tracking.</p>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:6px"><strong>Not supported:</strong> Robinhood, Schwab, Vanguard, E*Trade &mdash; none offer public retail brokerage APIs. Use manual mode (CSV import + copyable order summary) if your broker isn't listed.</p>
+    </div>
+
+    <div class="card">
+      <h3>Good to know (limitations)</h3>
+      <ul style="font-size:13px;line-height:1.9;padding-left:20px">
+        <li>This tool runs entirely in your browser &mdash; no backend, no server. Your API keys never leave your computer except to call the provider directly (Finnhub, the AI, your broker).</li>
+        <li>If an AI provider is down or blocked by your browser, the tool automatically tries the next one. You'll see which one was used in the output.</li>
+        <li>Finnhub's free tier doesn't include candle price history &mdash; the tool falls back to Yahoo Finance automatically. Fundamentals may be partial on free tier; the AI is told what's missing and works with what's available.</li>
+        <li>The AI agents are smart but not perfect. <strong>Always verify their output before placing real trades.</strong> The verdicts are analysis, not investment advice.</li>
+        <li>Nothing here is investment advice. REIT Strategist is a research tool. You are responsible for your own investment decisions.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>v2 changelog (improvements &amp; fixes)</h3>
+      <ul style="font-size:12px;line-height:1.7;padding-left:20px;color:var(--text-dim)">
+        <li><strong style="color:var(--accent)">NEW</strong> Web search feature &mdash; Screener and Analyst now pull recent news (last 30 days, top 5 articles per ticker) from Finnhub and pass it to the AI, so analysis reflects current events</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Groq promoted from "mock only" to real tier &mdash; does the fast/easy work (screener theses); strong models (Claude/ChatGPT/DeepSeek/GLM) do the heavy lifting and verify</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Groq model updated <code>llama-3.3-70b-versatile</code> &rarr; <code>llama-3.1-8b-instant</code> (the old model returned 404)</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Beginner-friendly Guide &mdash; step-by-step mock vs. live walkthrough, plain-English agent descriptions, common workflows</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Tactical Agent &mdash; ranks top 3 REITs to buy now from your portfolio &amp; risk profile</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Order Router Agent &mdash; recommends order type, size, limit, stop, TIF</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Broker integration &mdash; Alpaca paper/live + Tradier sandbox/live + Fidelity manual (CSV import)</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Portfolio tab &mdash; holdings manager with sector allocation &amp; P/L</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Income tab &mdash; ex-dividend calendar, monthly income chart, yield on cost, dividend CAGR, growth streaks, 10yr history mini-charts</li>
+        <li><strong style="color:var(--accent)">NEW</strong> DRIP checkbox in Trade tab &mdash; passed to Order Router Agent</li>
+        <li><strong style="color:var(--accent)">NEW</strong> REIT tax treatment card in Guide</li>
+        <li><strong style="color:var(--accent)">NEW</strong> Watchlist persistence via localStorage</li>
+        <li><strong style="color:var(--accent)">FIX</strong> GLM model <code>glm-4.6</code> &rarr; <code>glm-4.5</code> (4.6 does not exist)</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Claude model alias &rarr; <code>claude-3-5-sonnet-latest</code> for stability</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Anthropic max_tokens 1000 &rarr; 4000 (was truncating analyst output)</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Robust JSON extraction from LLM output (handles prose-wrapped arrays)</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Error messages now include HTTP status + response body excerpt</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Chart 403 error on free Finnhub tier &mdash; now falls back to Yahoo Finance automatically, then to a clean today-snapshot panel</li>
+        <li><strong style="color:var(--accent)">FIX</strong> Mobile-responsive layout (HIG-compliant tap targets, safe-area support)</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ================= REIT UNIVERSE ================= */
+const UNIVERSE = [
+  {t:'O',   name:'Realty Income',            sector:'Net Lease'},
+  {t:'NNN', name:'National Retail Properties',sector:'Net Lease'},
+  {t:'ADC', name:'Agree Realty',             sector:'Net Lease'},
+  {t:'SPG', name:'Simon Property Group',     sector:'Retail'},
+  {t:'REG', name:'Regency Centers',          sector:'Retail'},
+  {t:'AVB', name:'AvalonBay Communities',    sector:'Residential'},
+  {t:'EQR', name:'Equity Residential',       sector:'Residential'},
+  {t:'ESS', name:'Essex Property Trust',     sector:'Residential'},
+  {t:'PLD', name:'Prologis',                 sector:'Industrial'},
+  {t:'FR',  name:'First Industrial Realty',  sector:'Industrial'},
+  {t:'REXR',name:'Rexford Industrial',       sector:'Industrial'},
+  {t:'BXP', name:'BXP Inc',                  sector:'Office'},
+  {t:'VNO', name:'Vornado Realty Trust',     sector:'Office'},
+  {t:'WELL',name:'Welltower',                sector:'Healthcare'},
+  {t:'VTR', name:'Ventas',                   sector:'Healthcare'},
+  {t:'DOC', name:'Healthpeak Properties',    sector:'Healthcare'},
+  {t:'EQIX',name:'Equinix',                  sector:'Data Center'},
+  {t:'DLR', name:'Digital Realty',           sector:'Data Center'},
+  {t:'AMT', name:'American Tower',           sector:'Specialty / Towers'},
+  {t:'PSA', name:'Public Storage',           sector:'Specialty / Storage'},
+  {t:'EXR', name:'Extra Space Storage',      sector:'Specialty / Storage'},
+  {t:'VICI',name:'VICI Properties',          sector:'Diversified / Gaming'},
+  {t:'NLY', name:'Annaly Capital',           sector:'Mortgage'},
+  {t:'STWD',name:'Starwood Property Trust',  sector:'Mortgage'}
+];
+const SECTOR_COLORS = {
+  'Net Lease':'#3ddc97','Retail':'#a78bfa','Residential':'#3b82f6','Industrial':'#f59e0b',
+  'Office':'#e05555','Healthcare':'#06b6d4','Data Center':'#fb923c',
+  'Specialty / Towers':'#ec4899','Specialty / Storage':'#10b981',
+  'Diversified / Gaming':'#8b5cf6','Mortgage':'#ef4444','Other':'#7a8ba8'
+};
+
+/* ================= STATE / SETTINGS ================= */
+const LS_KEY = 'reit_strategist_settings_v2';
+const LS_PORTFOLIO = 'reit_strategist_portfolio_v2';
+const LS_WATCHLIST = 'reit_strategist_watchlist_v2';
+let settings = { finnhub:'', deepseek:'', glm:'', claude:'', chatgpt:'', groq:'', alpacaKey:'', alpacaSecret:'', tradier:'' };
+let portfolio = { riskProfile:'Moderate', cash:10000, holdings:[] };
+let watchlist = [];
+const $ = id => document.getElementById(id);
+
+function loadSettings(){
+  try{ const raw = localStorage.getItem(LS_KEY); if(raw) settings = Object.assign(settings, JSON.parse(raw)); }catch(e){}
+  try{ const p = localStorage.getItem(LS_PORTFOLIO); if(p) portfolio = Object.assign(portfolio, JSON.parse(p)); }catch(e){}
+  try{ const w = localStorage.getItem(LS_WATCHLIST); if(w) watchlist = JSON.parse(w); }catch(e){}
+}
+function persistSettings(){
+  localStorage.setItem(LS_KEY, JSON.stringify(settings));
+}
+function persistPortfolio(){ localStorage.setItem(LS_PORTFOLIO, JSON.stringify(portfolio)); }
+function persistWatchlist(){ localStorage.setItem(LS_WATCHLIST, JSON.stringify(watchlist)); }
+
+function saveSettings(){
+  settings.finnhub = $('s-finnhub').value.trim();
+  settings.deepseek = $('s-deepseek').value.trim();
+  settings.glm = $('s-glm').value.trim();
+  settings.claude = $('s-claude').value.trim();
+  settings.chatgpt = $('s-chatgpt').value.trim();
+  settings.groq = $('s-groq').value.trim();
+  persistSettings();
+  renderChainStatus();
+  $('settings-saved-msg').textContent = 'Saved.';
+  $('settings-saved-msg').className = 'msg ok';
+  setTimeout(()=> $('settings-saved-msg').textContent = '', 2000);
+}
+function saveBrokerKeys(){
+  settings.alpacaKey = $('s-alpaca-key').value.trim();
+  settings.alpacaSecret = $('s-alpaca-secret').value.trim();
+  settings.tradier = $('s-tradier').value.trim();
+  persistSettings();
+  $('broker-saved-msg').textContent = 'Broker keys saved.';
+  $('broker-saved-msg').className = 'msg ok';
+  setTimeout(()=> $('broker-saved-msg').textContent = '', 2000);
+}
+function populateSettingsForm(){
+  $('s-finnhub').value = settings.finnhub || '';
+  $('s-deepseek').value = settings.deepseek || '';
+  $('s-glm').value = settings.glm || '';
+  $('s-claude').value = settings.claude || '';
+  $('s-chatgpt').value = settings.chatgpt || '';
+  $('s-groq').value = settings.groq || '';
+  $('s-alpaca-key').value = settings.alpacaKey || '';
+  $('s-alpaca-secret').value = settings.alpacaSecret || '';
+  $('s-tradier').value = settings.tradier || '';
+}
+
+/* ================= LLM PROVIDER ROUTING ================= */
+const PROVIDERS = {
+  deepseek: {label:'DeepSeek',  type:'openai',    url:'https://api.deepseek.com/chat/completions',                 model:'deepseek-chat'},
+  glm:      {label:'GLM-4.5',   type:'openai',    url:'https://open.bigmodel.cn/api/paas/v4/chat/completions',     model:'glm-4.5'},
+  claude:   {label:'Claude',    type:'anthropic', url:'https://api.anthropic.com/v1/messages',                     model:'claude-3-5-sonnet-latest'},
+  chatgpt:  {label:'ChatGPT',   type:'openai',    url:'https://api.openai.com/v1/chat/completions',                model:'gpt-4o-mini'},
+  groq:     {label:'Groq',      type:'openai',    url:'https://api.groq.com/openai/v1/chat/completions',           model:'llama-3.1-8b-instant'}
+};
+// Tiered priority per agent role.
+// Groq (fast, lightweight) does the EASY work: screener thesis, news summaries.
+// Strong models (Claude, ChatGPT, DeepSeek, GLM) do the HEAVY work: analyst verdicts, tactical ranking, order routing.
+// Groq is tried first for lightweight tasks (speed), and last for heavy tasks (fallback only).
+const PRIORITY = {
+  screener: ['groq','deepseek','chatgpt','glm','claude'],   // Groq first — simple JSON thesis
+  analyst:  ['claude','chatgpt','glm','deepseek','groq'],    // Strong first — deep analysis, Groq last-resort
+  tactical: ['claude','deepseek','chatgpt','glm','groq'],    // Strong first — ranking needs judgment
+  router:   ['deepseek','chatgpt','glm','claude','groq']     // Strong first — order sizing needs precision
+};
+function resolveChain(role){
+  return PRIORITY[role].filter(id => settings[id] && settings[id].length > 0);
+}
+async function httpError(res){
+  let body = '';
+  try{ body = (await res.text()).slice(0,200); }catch(e){}
+  return new Error('HTTP '+res.status+(body?' — '+body:''));
+}
+async function callOpenAICompatible(cfg, apiKey, systemPrompt, userPrompt, maxTokens){
+  const res = await fetch(cfg.url, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+    body: JSON.stringify({
+      model: cfg.model,
+      temperature: 0.2,
+      max_tokens: maxTokens || 2500,
+      messages: [{role:'system',content:systemPrompt},{role:'user',content:userPrompt}]
+    })
+  });
+  if(!res.ok) throw await httpError(res);
+  const data = await res.json();
+  if(!data.choices || !data.choices[0]) throw new Error('Empty LLM response');
+  return data.choices[0].message.content;
+}
+async function callAnthropic(cfg, apiKey, systemPrompt, userPrompt, maxTokens){
+  const res = await fetch(cfg.url, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model: cfg.model,
+      max_tokens: maxTokens || 4000,
+      system: systemPrompt,
+      messages: [{role:'user',content:userPrompt}]
+    })
+  });
+  if(!res.ok) throw await httpError(res);
+  const data = await res.json();
+  if(!data.content) throw new Error('Empty Anthropic response');
+  return data.content.filter(b=>b.type==='text').map(b=>b.text||'').join('\n');
+}
+async function callProvider(id, systemPrompt, userPrompt, opts){
+  const cfg = PROVIDERS[id];
+  const key = settings[id];
+  if(cfg.type === 'anthropic') return await callAnthropic(cfg, key, systemPrompt, userPrompt, opts && opts.maxTokens);
+  return await callOpenAICompatible(cfg, key, systemPrompt, userPrompt, opts && opts.maxTokens);
+}
+// Runs the fallback chain for a role; returns {provider, mode, text} or throws if every step fails.
+async function runAgent(role, systemPrompt, userPrompt, opts){
+  const chain = resolveChain(role);
+  if(chain.length === 0) throw new Error('No strategist provider configured for this role. Add a key in Settings.');
+  let lastErr = null;
+  for(const id of chain){
+    try{
+      const text = await callProvider(id, systemPrompt, userPrompt, opts);
+      return { provider: PROVIDERS[id].label, mode: chain.length>1 ? 'multi-tier':'single-api', text };
+    }catch(e){ lastErr = e; }
+  }
+  throw new Error('All configured providers failed: '+(lastErr?lastErr.message:'unknown'));
+}
+async function runMockTest(){
+  if(!settings.groq){ $('settings-saved-msg').textContent = 'Enter a Groq key first.'; $('settings-saved-msg').className='msg err'; return; }
+  $('settings-saved-msg').textContent = 'Testing Groq connection...';
+  $('settings-saved-msg').className = 'msg';
+  try{
+    const text = await callProvider('groq', 'You are a test responder.', 'Reply with the single word: OK', {maxTokens:10});
+    $('settings-saved-msg').textContent = 'Groq connected! Response: ' + text.trim().slice(0,60);
+    $('settings-saved-msg').className = 'msg ok';
+  }catch(e){
+    $('settings-saved-msg').textContent = 'Groq test failed: ' + e.message;
+    $('settings-saved-msg').className = 'msg err';
+  }
+}
+
+/* Robust JSON extraction: strips code fences, finds first JSON array or object */
+function extractJSON(text){
+  if(!text) return null;
+  let s = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+  // Try direct parse first
+  try{ return JSON.parse(s); }catch(e){}
+  // Find first {...} or [...] block
+  const arrMatch = s.match(/\[[\s\S]*\]/);
+  if(arrMatch){ try{ return JSON.parse(arrMatch[0]); }catch(e){} }
+  const objMatch = s.match(/\{[\s\S]*\}/);
+  if(objMatch){ try{ return JSON.parse(objMatch[0]); }catch(e){} }
+  return null;
+}
+
+/* ================= MARKET DATA (Finnhub) ================= */
+function fh(path, params){
+  const key = settings.finnhub;
+  if(!key) throw new Error('No Finnhub key set. Add one in Settings.');
+  const qs = new URLSearchParams(Object.assign({token:key}, params));
+  return fetch('https://finnhub.io/api/v1'+path+'?'+qs.toString()).then(async r=>{
+    if(!r.ok) throw await httpError(r);
+    return r.json();
+  });
+}
+async function fetchQuote(symbol){ return fh('/quote', {symbol}); }
+async function fetchProfile(symbol){ return fh('/stock/profile2', {symbol}); }
+async function fetchMetric(symbol){ return fh('/stock/metric', {symbol, metric:'all'}); }
+// Fetch recent company news from Finnhub — this is the "web search" feature.
+// Pulls real news headlines + summaries from the last 30 days and passes them to the LLM
+// so its thesis/verdict reflects current events, not just training-data knowledge.
+async function fetchCompanyNews(symbol, days){
+  const to = new Date();
+  const from = new Date(to.getTime() - days*86400000);
+  const fromStr = from.toISOString().slice(0,10);
+  const toStr = to.toISOString().slice(0,10);
+  try{
+    const data = await fh('/news/company-news', { symbol, from:fromStr, to:toStr });
+    if(!Array.isArray(data)) return [];
+    // Sort by most recent, take top 5, extract just headline + summary + source + date
+    return data.sort((a,b)=>b.datetime-a.datetime).slice(0,5).map(n=>({
+      headline: n.headline || '',
+      summary: (n.summary||'').slice(0,200),
+      source: n.source || '',
+      date: new Date(n.datetime*1000).toISOString().slice(0,10)
+    }));
+  }catch(e){ return []; }
+}
+// Chart data with multi-source fallback chain.
+// Finnhub /stock/candle returns HTTP 403 on free tier (instead of s:'no_data'),
+// so we fall back to Yahoo Finance (free, no key, CORS-enabled) before giving up.
+async function fetchCandlesFinnhub(symbol, days){
+  const to = Math.floor(Date.now()/1000);
+  const from = to - days*86400;
+  const data = await fh('/stock/candle', {symbol, resolution:'D', from, to});
+  if(data && data.s === 'ok' && data.c && data.c.length){
+    return { closes:data.c, times:data.t, source:'Finnhub' };
+  }
+  return null;
+}
+async function fetchCandlesYahoo(symbol, days){
+  const range = days <= 30 ? '1mo' : days <= 90 ? '3mo' : days <= 180 ? '6mo' : '1y';
+  // Try query1 then query2 hosts; both have CORS enabled for chart endpoint
+  const hosts = ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com'];
+  for(const host of hosts){
+    try{
+      const r = await fetch(host+'/v8/finance/chart/'+encodeURIComponent(symbol)+'?range='+range+'&interval=1d', {
+        headers:{ 'Accept':'application/json' }
+      });
+      if(!r.ok) continue;
+      const j = await r.json();
+      const result = j.chart && j.chart.result && j.chart.result[0];
+      if(!result) continue;
+      const timestamps = result.timestamp || [];
+      const quoteArr = result.indicators && result.indicators.quote && result.indicators.quote[0];
+      if(!quoteArr) continue;
+      const closes = [], times = [];
+      timestamps.forEach((t,i)=>{
+        const c = quoteArr.close && quoteArr.close[i];
+        if(c != null && !isNaN(c)){ closes.push(c); times.push(t); }
+      });
+      if(closes.length) return { closes, times, source:'Yahoo Finance' };
+    }catch(e){ /* try next host */ }
+  }
+  return null;
+}
+async function fetchCandles(symbol, days){
+  // 1) Finnhub (works on paid plans)
+  if(settings.finnhub){
+    try{
+      const fhData = await fetchCandlesFinnhub(symbol, days);
+      if(fhData) return fhData;
+    }catch(e){ /* 403 on free tier — fall through */ }
+  }
+  // 2) Yahoo Finance (free, no key, CORS-enabled)
+  try{
+    const yData = await fetchCandlesYahoo(symbol, days);
+    if(yData) return yData;
+  }catch(e){}
+  // 3) Give up — caller shows snapshot
+  return null;
+}
+function extractDividendYield(metric){
+  const m = metric && metric.metric || {};
+  return m.dividendYieldIndicatedAnnual ?? m.currentDividendYieldTTM ?? m.dividendYield5Y ?? null;
+}
+function extractPayout(metric){
+  const m = metric && metric.metric || {};
+  return m.payoutRatioTTM ?? m.payoutRatioAnnual ?? null;
+}
+function extractDebtEquity(metric){
+  const m = metric && metric.metric || {};
+  return m['totalDebt/totalEquityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? null;
+}
+
+/* ================= SCREENER FLOW ================= */
+function populateSectorFilter(){
+  const sel = $('f-sector');
+  const sectors = [...new Set(UNIVERSE.map(u=>u.sector))].sort();
+  sectors.forEach(s=>{
+    const opt = document.createElement('option'); opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+}
+function isValidSymbol(s){ return /^[A-Z]{1,6}$/.test(s); }
+function withSpinner(btn, fn){
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>'+orig;
+  return fn().finally(()=>{ btn.disabled=false; btn.innerHTML = orig; });
+}
+async function runScreener(){
+  const status = $('screen-status');
+  const tbody = $('screen-tbody');
+  tbody.innerHTML = '';
+  if(!settings.finnhub){ status.textContent = 'Set a Finnhub API key in Settings first.'; status.className='msg err'; return; }
+  const sector = $('f-sector').value;
+  const minYield = parseFloat($('f-yield').value) || 0;
+  const pool = UNIVERSE.filter(u => !sector || u.sector === sector);
+  status.className = 'msg';
+  status.textContent = 'Fetching live data + recent news for '+pool.length+' symbols...';
+
+  const results = [];
+  for(const u of pool){
+    try{
+      const [quote, metric, news] = await Promise.all([
+        fetchQuote(u.t),
+        fetchMetric(u.t).catch(()=>({metric:{}})),
+        fetchCompanyNews(u.t, 30).catch(()=>[])
+      ]);
+      const yieldPct = extractDividendYield(metric);
+      if(quote && quote.c){
+        results.push({
+          ticker:u.t, name:u.name, sector:u.sector,
+          price:quote.c, changePct:quote.dp,
+          divYield: yieldPct, payout: extractPayout(metric), debtEquity: extractDebtEquity(metric),
+          news: news,
+          thesis:''
+        });
+      }
+    }catch(e){ /* skip symbol on error */ }
+  }
+  const filtered = results.filter(r => r.divYield==null || r.divYield >= minYield)
+                           .sort((a,b)=> (b.divYield||0) - (a.divYield||0));
+
+  status.textContent = filtered.length+' candidates found. Requesting Discovery Agent thesis (with news context)...';
+  try{
+    const chain = resolveChain('screener');
+    if(chain.length){
+      const prompt = 'You are a Lead Real Estate Portfolio Strategist. Given this JSON list of REIT candidates with live fundamentals AND recent news headlines, '
+        + 'return ONLY a JSON array, same order, each item {"ticker":..,"thesis":"one sentence, under 20 words"}. '
+        + 'Base the thesis on dividend yield, payout ratio, debt/equity, AND any material recent news (dividend changes, earnings, acquisitions, downgrades). '
+        + 'If news is empty or a field is null, say data is limited. Prioritize news that affects dividend safety or growth.\n'
+        + JSON.stringify(filtered.map(r=>({
+          ticker:r.ticker, sector:r.sector, divYield:r.divYield, payout:r.payout, debtEquity:r.debtEquity,
+          recentNews: (r.news||[]).map(n=>n.headline).slice(0,3)
+        })));
+      const out = await runAgent('screener', 'You are a professional REIT screening strategist. Respond with valid JSON only, no prose.', prompt, {maxTokens:2500});
+      const parsed = extractJSON(out.text);
+      if(Array.isArray(parsed)){
+        parsed.forEach(p=>{
+          const row = filtered.find(f=>f.ticker===p.ticker);
+          if(row && p.thesis) row.thesis = p.thesis;
+        });
+        status.textContent = filtered.length+' candidates — thesis via '+chain.map(c=>PROVIDERS[c].label).join(' → ')+' (with live news)';
+        status.className = 'msg ok';
+      } else {
+        status.textContent = filtered.length+' candidates found. Discovery Agent returned non-JSON — showing numeric ranking only.';
+        status.className = 'msg err';
+      }
+    } else {
+      status.textContent = filtered.length+' candidates found (no strategist provider configured — numeric ranking only).';
+    }
+  }catch(e){
+    status.textContent = filtered.length+' candidates found. Discovery Agent unavailable: '+e.message;
+    status.className='msg err';
+  }
+
+  renderScreenerTable(filtered);
+}
+function renderScreenerTable(rows){
+  const tbody = $('screen-tbody');
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8" class="msg" style="text-align:center;padding:20px">No candidates</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r=>{
+    const chgCls = r.changePct>=0 ? 'up':'down';
+    const inWatch = watchlist.includes(r.ticker);
+    return '<tr>'
+      +'<td><b>'+r.ticker+'</b></td>'
+      +'<td>'+r.name+'</td>'
+      +'<td>'+r.sector+'</td>'
+      +'<td class="r">$'+(r.price!=null?r.price.toFixed(2):'—')+'</td>'
+      +'<td class="r '+chgCls+'">'+(r.changePct!=null?(r.changePct>=0?'+':'')+r.changePct.toFixed(2)+'%':'—')+'</td>'
+      +'<td class="r">'+(r.divYield!=null?r.divYield.toFixed(2)+'%':'—')+'</td>'
+      +'<td class="thesis">'+(r.thesis||'—')+'</td>'
+      +'<td class="r" style="white-space:nowrap">'
+        +'<button class="btn btn-sm" data-watch="'+r.ticker+'" title="'+(inWatch?'Already in watchlist':'Add to watchlist')+'">'+(inWatch?'✓':'+')+'</button> '
+        +'<button class="btn btn-sm" data-goto="'+r.ticker+'">Watch</button> '
+        +'<button class="btn btn-sm btn-trade" data-trade="'+r.ticker+'">Trade</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+  tbody.querySelectorAll('[data-goto]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      switchTab('analyst');
+      $('wa-symbol').value = btn.dataset.goto;
+      loadSymbol();
+    });
+  });
+  tbody.querySelectorAll('[data-watch]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.watch;
+      if(watchlist.includes(t)){ watchlist = watchlist.filter(x=>x!==t); }
+      else { watchlist.push(t); }
+      persistWatchlist();
+      renderScreenerTable(rows);
+    });
+  });
+  tbody.querySelectorAll('[data-trade]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      switchTab('trade');
+      $('ord-symbol').value = btn.dataset.trade;
+      $('ord-side').value = 'buy';
+      updateOrderCostEstimate();
+    });
+  });
+}
+
+/* ================= WATCH & ANALYST FLOW ================= */
+let currentSymbol = null, currentMetrics = null;
+async function loadSymbol(){
+  const status = $('wa-status');
+  const sym = $('wa-symbol').value.trim().toUpperCase();
+  if(!sym){ status.textContent='Enter a ticker.'; status.className='msg err'; return; }
+  if(!isValidSymbol(sym)){ status.textContent='Invalid ticker (1-6 letters A-Z).'; status.className='msg err'; return; }
+  if(!settings.finnhub){ status.textContent='Set a Finnhub API key in Settings first.'; status.className='msg err'; return; }
+  status.className='msg'; status.textContent='Loading '+sym+'...';
+  try{
+    const [quote, profile, metric] = await Promise.all([
+      fetchQuote(sym),
+      fetchProfile(sym).catch(()=>({})),
+      fetchMetric(sym).catch(()=>({metric:{}}))
+    ]);
+    currentSymbol = sym;
+    currentMetrics = {
+      ticker: sym,
+      name: profile.name || sym,
+      price: quote.c, changePct: quote.dp, dayHigh: quote.h, dayLow: quote.l,
+      dividendYield: extractDividendYield(metric),
+      payoutRatio: extractPayout(metric),
+      debtToEquity: extractDebtEquity(metric)
+    };
+    $('wa-title').textContent = currentMetrics.name+' ('+sym+')  $'+(quote.c!=null?quote.c.toFixed(2):'—')+'  '+(quote.dp!=null?(quote.dp>=0?'+':'')+quote.dp.toFixed(2)+'%':'');
+    $('btn-analyst-trade').style.display = 'inline-block';
+    status.textContent = 'Loaded.';
+    status.className = 'msg ok';
+    try{
+      const candles = await fetchCandles(sym, 120);
+      if(candles && candles.closes && candles.closes.length){
+        drawChart(candles.closes, candles.times, candles.source);
+        if(candles.source !== 'Finnhub'){
+          status.textContent = 'Loaded (chart via '+candles.source+').';
+          status.className = 'msg ok';
+        }
+      } else {
+        // No historical data from any source — show today's snapshot panel
+        drawSnapshot(currentMetrics);
+        status.textContent = 'Loaded (live quote OK; historical chart unavailable on free Finnhub plan — showing today\'s snapshot).';
+        status.className = 'msg';
+      }
+    }catch(e){
+      // Should not happen — fetchCandles swallows errors — but just in case:
+      drawSnapshot(currentMetrics);
+      status.textContent = 'Loaded (live quote OK; chart unavailable — showing snapshot).';
+      status.className = 'msg';
+    }
+  }catch(e){
+    status.className='msg err'; status.textContent='Failed to load '+sym+': '+e.message;
+  }
+}
+async function analyzeSymbol(){
+  const status = $('wa-status');
+  if(!currentMetrics){ status.textContent='Load a symbol first.'; status.className='msg err'; return; }
+  status.className='msg'; status.textContent='Running Analyst Agent (fetching recent news + analysis)...';
+  // Fetch recent news for this symbol to give the LLM current context
+  let newsItems = [];
+  try{ newsItems = await fetchCompanyNews(currentMetrics.ticker, 30); }catch(e){}
+  const sys = 'You are a Managing Director on a Commercial Real Estate Investment Committee. '
+    + 'Evaluate the REIT using the data given AND any recent news provided. '
+    + 'Some fields (like FFO/AFFO/NAV) may not be present — say so rather than inventing numbers. '
+    + 'If recent news contains material events (dividend changes, earnings beats/misses, acquisitions, downgrades, guidance revisions), factor them into your analysis. '
+    + 'Output plain text with these labeled sections exactly: Dividend Safety Score (1-10), Growth Outlook (Bullish/Neutral/Bearish), Key Risk Factors, Verdict (Buy/Hold/Avoid). '
+    + 'End with a one-line rationale.';
+  const user = JSON.stringify({
+    ...currentMetrics,
+    recentNews: newsItems.map(n=>({ date:n.date, headline:n.headline, source:n.source, summary:n.summary }))
+  });
+  try{
+    const res = await runAgent('analyst', sys, user, {maxTokens:4000});
+    $('verdict-card').style.display = 'block';
+    const verdictLabel = parseVerdict(res.text);
+    const badge = verdictLabel ? ' <span class="pill '+verdictLabel.toLowerCase()+'">'+verdictLabel.toUpperCase()+'</span>' : '';
+    const newsNote = newsItems.length ? ' <span class="pill on">'+newsItems.length+' news items</span>' : '';
+    $('verdict-provider').innerHTML = 'Analyst Agent — '+res.provider+' ('+res.mode+')'+badge+newsNote;
+    $('verdict-text').textContent = res.text;
+    status.textContent = 'Done.'+(newsItems.length ? ' '+newsItems.length+' recent news items included.' : ' No recent news found.');
+    status.className = 'msg ok';
+  }catch(e){
+    status.className='msg err'; status.textContent = 'Analyst Agent failed: '+e.message;
+  }
+}
+function parseVerdict(text){
+  if(!text) return null;
+  const m = text.match(/Verdict[^a-zA-Z]*\(?(Buy|Hold|Avoid)\)?/i);
+  return m ? m[1].charAt(0).toUpperCase()+m[1].slice(1).toLowerCase() : null;
+}
+function watchlistAddCurrent(){
+  const sym = $('wa-symbol').value.trim().toUpperCase();
+  if(!sym){ $('wa-status').textContent='Load a symbol first.'; $('wa-status').className='msg err'; return; }
+  if(!watchlist.includes(sym)){ watchlist.push(sym); persistWatchlist(); $('wa-status').textContent='Added '+sym+' to watchlist.'; $('wa-status').className='msg ok'; }
+  else { $('wa-status').textContent=sym+' already in watchlist.'; $('wa-status').className='msg'; }
+}
+
+/* ================= SIMPLE PRICE CHART ================= */
+function clearChart(msg){
+  const c = $('chart-canvas'); const ctx = c.getContext('2d');
+  c.width = c.clientWidth || 600; c.height = 220;
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle = '#7a8ba8'; ctx.font='12px sans-serif';
+  ctx.fillText(msg || 'No chart data', 10, 110);
+}
+// Snapshot fallback: when no historical chart is available from any source,
+// show today's OHLC + day range as a clean panel instead of an error.
+function drawSnapshot(metrics){
+  const c = $('chart-canvas'); const ctx = c.getContext('2d');
+  c.width = c.clientWidth || 600; c.height = 220;
+  ctx.clearRect(0,0,c.width,c.height);
+  if(!metrics){
+    ctx.fillStyle = '#7a8ba8'; ctx.font='12px sans-serif';
+    ctx.fillText('No chart data', 10, 110);
+    return;
+  }
+  const price = metrics.price, hi = metrics.dayHigh, lo = metrics.dayLow;
+  // background
+  ctx.fillStyle = '#182338';
+  ctx.fillRect(0,0,c.width,c.height);
+  // day range bar
+  const padX = 60, padY = 40;
+  const barX = padX, barW = c.width - padX*2;
+  const barY = padY + 30, barH = 14;
+  if(hi!=null && lo!=null && hi>0 && lo>0 && hi>=lo){
+    // track
+    ctx.fillStyle = '#23304a';
+    ctx.fillRect(barX, barY, barW, barH);
+    // fill from lo to hi
+    ctx.fillStyle = '#3ddc97';
+    ctx.fillRect(barX, barY, barW, barH);
+    // current price marker
+    const range = hi-lo || 1;
+    const pos = Math.max(0, Math.min(1, (price-lo)/range));
+    const px = barX + pos*barW;
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(px-2, barY-6, 4, barH+12);
+    // labels
+    ctx.fillStyle = '#7a8ba8'; ctx.font = '10px monospace';
+    ctx.fillText('Low $'+lo.toFixed(2), barX, barY-10);
+    ctx.fillText('High $'+hi.toFixed(2), barX+barW-80, barY-10);
+    ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 11px monospace';
+    const priceLabel = 'Now $'+(price!=null?price.toFixed(2):'—');
+    const labelW = ctx.measureText(priceLabel).width;
+    ctx.fillText(priceLabel, Math.max(barX, Math.min(barX+barW-labelW, px-labelW/2)), barY+barH+18);
+  } else {
+    ctx.fillStyle = '#7a8ba8'; ctx.font='12px monospace';
+    ctx.fillText('Day range unavailable on your plan', 10, 110);
+  }
+  // title
+  ctx.fillStyle = '#e6ecf5'; ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(metrics.name+' ('+metrics.ticker+') — Today', padX, padY);
+  // change pill
+  if(metrics.changePct!=null){
+    const chg = metrics.changePct;
+    ctx.fillStyle = chg>=0 ? '#3ddc97' : '#e05555';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText((chg>=0?'+':'')+chg.toFixed(2)+'%', c.width-90, padY);
+  }
+  // source note
+  ctx.fillStyle = '#7a8ba8'; ctx.font = '9px sans-serif';
+  ctx.fillText('Snapshot from Finnhub quote (historical chart unavailable on free plan)', padX, c.height-12);
+}
+function drawChart(closes, times, source){
+  const c = $('chart-canvas'); const ctx = c.getContext('2d');
+  c.width = c.clientWidth || 600; c.height = 220;
+  ctx.clearRect(0,0,c.width,c.height);
+  if(!closes || !closes.length){ clearChart(); return; }
+  const min = Math.min(...closes), max = Math.max(...closes);
+  const pad = 22;
+  const w = c.width - pad*2, h = c.height - pad*2;
+  // grid lines
+  ctx.strokeStyle = '#23304a'; ctx.lineWidth = 1;
+  for(let i=0;i<=4;i++){
+    const y = pad + (i/4)*h;
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(pad+w,y); ctx.stroke();
+  }
+  // price line
+  ctx.beginPath();
+  closes.forEach((v,i)=>{
+    const x = pad + (i/(closes.length-1))*w;
+    const y = pad + h - ((v-min)/(max-min||1))*h;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#3ddc97'; ctx.lineWidth = 1.8; ctx.stroke();
+  // labels
+  ctx.fillStyle = '#7a8ba8'; ctx.font = '10px monospace';
+  ctx.fillText('$'+max.toFixed(2), 2, pad+4);
+  ctx.fillText('$'+min.toFixed(2), 2, c.height-pad+4);
+  ctx.fillText('$'+closes[closes.length-1].toFixed(2), 2, c.height/2);
+  // source badge (top right)
+  if(source){
+    ctx.fillStyle = '#7a8ba8'; ctx.font = '9px sans-serif';
+    const label = 'source: '+source+'  •  '+closes.length+' bars';
+    const labelW = ctx.measureText(label).width;
+    ctx.fillText(label, c.width-labelW-8, 12);
+  }
+}
+
+/* ================= PORTFOLIO TAB ================= */
+function renderPortfolio(){
+  $('pf-risk').value = portfolio.riskProfile || 'Moderate';
+  $('pf-cash').value = portfolio.cash;
+  // mirror to best-picks inputs
+  $('bp-risk').value = portfolio.riskProfile || 'Moderate';
+  $('bp-cash').value = portfolio.cash;
+
+  const tbody = $('pf-tbody');
+  if(!portfolio.holdings.length){
+    tbody.innerHTML = '<tr><td colspan="10" class="msg" style="text-align:center;padding:20px">No holdings yet &mdash; add one above</td></tr>';
+  } else {
+    tbody.innerHTML = portfolio.holdings.map((h,i)=>{
+      const u = UNIVERSE.find(x=>x.t===h.ticker);
+      const sector = h.sector || (u?u.sector:'Other');
+      const cur = h.currentPrice!=null?h.currentPrice:h.costBasis;
+      const mv = cur*h.shares;
+      const pl = (cur-h.costBasis)*h.shares;
+      const plPct = h.costBasis>0 ? ((cur-h.costBasis)/h.costBasis*100) : 0;
+      const plCls = pl>=0?'up':'down';
+      // yield on cost — populated by income sync; falls back to current yield if no annual rate
+      const yoc = (h.annualDivRate && h.costBasis>0) ? (h.annualDivRate/h.costBasis*100) : null;
+      const yocCls = yoc!=null ? 'up' : '';
+      return '<tr>'
+        +'<td><b>'+h.ticker+'</b></td>'
+        +'<td>'+sector+'</td>'
+        +'<td class="r">'+h.shares+'</td>'
+        +'<td class="r">$'+h.costBasis.toFixed(2)+'</td>'
+        +'<td class="r">'+(h.currentPrice!=null?'$'+h.currentPrice.toFixed(2):'—')+'</td>'
+        +'<td class="r">$'+mv.toFixed(2)+'</td>'
+        +'<td class="r '+plCls+'">$'+pl.toFixed(2)+'</td>'
+        +'<td class="r '+plCls+'">'+(plPct>=0?'+':'')+plPct.toFixed(2)+'%</td>'
+        +'<td class="r '+yocCls+'">'+(yoc!=null?yoc.toFixed(2)+'%':'—')+'</td>'
+        +'<td class="r"><button class="btn btn-sm btn-danger" data-pf-del="'+i+'">x</button></td>'
+        +'</tr>';
+    }).join('');
+    tbody.querySelectorAll('[data-pf-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        portfolio.holdings.splice(parseInt(btn.dataset.pfDel),1);
+        persistPortfolio(); renderPortfolio();
+      });
+    });
+  }
+  // KPIs
+  let holdingsVal = 0, totalCost = 0;
+  portfolio.holdings.forEach(h=>{
+    const cur = h.currentPrice!=null?h.currentPrice:h.costBasis;
+    holdingsVal += cur*h.shares;
+    totalCost += h.costBasis*h.shares;
+  });
+  const pl = holdingsVal - totalCost;
+  $('pf-holdings-val').textContent = '$'+holdingsVal.toFixed(2);
+  $('pf-cash-val').textContent = '$'+(portfolio.cash||0).toFixed(2);
+  $('pf-net-val').textContent = '$'+(holdingsVal+(portfolio.cash||0)).toFixed(2);
+  const plEl = $('pf-pl-val');
+  plEl.textContent = (pl>=0?'+':'')+'$'+pl.toFixed(2);
+  plEl.className = 'val '+(pl>=0?'up':'down');
+  renderAllocationBar();
+}
+function renderAllocationBar(){
+  const bar = $('pf-alloc-bar');
+  const legend = $('pf-alloc-legend');
+  const totals = {};
+  let grand = 0;
+  portfolio.holdings.forEach(h=>{
+    const u = UNIVERSE.find(x=>x.t===h.ticker);
+    const sector = h.sector || (u?u.sector:'Other');
+    const cur = h.currentPrice!=null?h.currentPrice:h.costBasis;
+    const v = cur*h.shares;
+    totals[sector] = (totals[sector]||0)+v; grand += v;
+  });
+  // include cash slice
+  const cashVal = portfolio.cash||0;
+  if(grand===0 && cashVal===0){ bar.innerHTML=''; legend.textContent='No allocation data yet.'; return; }
+  const total = grand + cashVal;
+  let parts = [];
+  Object.keys(totals).forEach(s=>{
+    const pct = (totals[s]/total*100);
+    parts.push({label:s, color:SECTOR_COLORS[s]||'#7a8ba8', pct, value:totals[s]});
+  });
+  if(cashVal>0) parts.push({label:'Cash', color:'#23304a', pct:cashVal/total*100, value:cashVal});
+  bar.innerHTML = parts.map(p=>'<div style="width:'+p.pct.toFixed(2)+'%;background:'+p.color+'" title="'+p.label+': '+p.pct.toFixed(1)+'%"></div>').join('');
+  legend.innerHTML = parts.map(p=>{
+    return '<span style="display:inline-block;width:10px;height:10px;background:'+p.color+';border-radius:2px;margin-right:5px;vertical-align:middle"></span>'
+      +p.label+' <b style="color:var(--text);font-family:var(--mono)">'+p.pct.toFixed(1)+'%</b> ($'+p.value.toFixed(0)+') &nbsp;&nbsp;';
+  }).join('');
+}
+async function addHolding(){
+  const status = $('pf-add-status');
+  const sym = $('pf-add-sym').value.trim().toUpperCase();
+  const shares = parseFloat($('pf-add-shares').value);
+  const cost = parseFloat($('pf-add-cost').value);
+  if(!isValidSymbol(sym)){ status.textContent='Invalid ticker.'; status.className='msg err'; return; }
+  if(!shares || shares<=0){ status.textContent='Shares must be > 0.'; status.className='msg err'; return; }
+  if(!cost || cost<=0){ status.textContent='Cost basis must be > 0.'; status.className='msg err'; return; }
+  const u = UNIVERSE.find(x=>x.t===sym);
+  const holding = { ticker:sym, shares, costBasis:cost, currentPrice:null, sector:(u?u.sector:'Other') };
+  portfolio.holdings.push(holding);
+  persistPortfolio();
+  renderPortfolio();
+  $('pf-add-sym').value=''; $('pf-add-shares').value='10'; $('pf-add-cost').value='50.00';
+  status.textContent='Added '+sym+'.';
+  status.className='msg ok';
+  setTimeout(()=>status.textContent='',2000);
+}
+async function syncPortfolioPrices(){
+  const status = $('pf-add-status');
+  if(!portfolio.holdings.length){ status.textContent='No holdings to sync.'; status.className='msg err'; return; }
+  if(!settings.finnhub){ status.textContent='Set a Finnhub key first.'; status.className='msg err'; return; }
+  status.textContent='Syncing prices...'; status.className='msg';
+  for(const h of portfolio.holdings){
+    try{
+      const q = await fetchQuote(h.ticker);
+      if(q && q.c) h.currentPrice = q.c;
+    }catch(e){}
+  }
+  persistPortfolio();
+  renderPortfolio();
+  status.textContent='Synced.'; status.className='msg ok';
+  setTimeout(()=>status.textContent='',2000);
+}
+function clearPortfolio(){
+  if(!confirm('Clear all holdings? This cannot be undone.')) return;
+  portfolio.holdings = [];
+  persistPortfolio();
+  renderPortfolio();
+}
+function onPortfolioMetaChange(){
+  portfolio.riskProfile = $('pf-risk').value;
+  portfolio.cash = parseFloat($('pf-cash').value)||0;
+  persistPortfolio();
+  renderPortfolio();
+}
+
+/* ================= INCOME TAB (DIVIDEND ANALYTICS) ================= */
+// Dividend history source chain:
+//  1. Finnhub /stock/dividend2 (CORS-enabled, requires key — user already has one)
+//  2. Yahoo Finance via allorigins.win CORS proxy (fallback if Finnhub fails)
+// Yahoo's direct events=div endpoint is CORS-blocked from browsers, hence the proxy.
+let incomeCache = { holdings:null, watchlist:null, lastSync:0 };
+
+async function fetchDividendsFinnhub(symbol, years){
+  const to = new Date();
+  const from = new Date(to.getFullYear() - years, to.getMonth(), to.getDate());
+  const fromStr = from.toISOString().slice(0,10);
+  const toStr = to.toISOString().slice(0,10);
+  const data = await fh('/stock/dividend2', { symbol, from:fromStr, to:toStr });
+  if(!Array.isArray(data)) return [];
+  // Finnhub returns {symbol, date(ex-date), payDate, amount, ...} with date as "YYYY-MM-DD" string
+  return data.map(d => ({
+    date: Math.floor(new Date(d.date + 'T00:00:00Z').getTime() / 1000),
+    amount: parseFloat(d.amount)
+  })).filter(d => !isNaN(d.amount) && d.amount > 0).sort((a,b) => a.date - b.date);
+}
+
+async function fetchDividendsYahooProxy(symbol, years){
+  const range = years>=10 ? '10y' : years>=5 ? '5y' : '1y';
+  const target = 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?range='+range+'&interval=1d&events=div';
+  // Try allorigins.win (free, reliable CORS proxy)
+  const proxyUrls = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
+    'https://corsproxy.io/?url=' + encodeURIComponent(target)
+  ];
+  for(const proxyUrl of proxyUrls){
+    try{
+      const r = await fetch(proxyUrl, { headers:{'Accept':'application/json'} });
+      if(!r.ok) continue;
+      const text = await r.text();
+      const j = JSON.parse(text);
+      const result = j.chart && j.chart.result && j.chart.result[0];
+      if(!result || !result.events || !result.events.dividends) continue;
+      const raw = Object.values(result.events.dividends);
+      return raw.map(d => ({ date: d.date, amount: parseFloat(d.amount) }))
+                .filter(d => !isNaN(d.amount) && d.amount > 0)
+                .sort((a,b) => a.date - b.date);
+    }catch(e){ /* try next proxy */ }
+  }
+  return [];
+}
+
+async function fetchDividends(symbol, years){
+  // 1) Finnhub (CORS-enabled, primary)
+  if(settings.finnhub){
+    try{
+      const d = await fetchDividendsFinnhub(symbol, years);
+      if(d.length) return { divs: d, source: 'Finnhub' };
+    }catch(e){ /* fall through to proxy */ }
+  }
+  // 2) Yahoo via CORS proxy (fallback)
+  try{
+    const d = await fetchDividendsYahooProxy(symbol, years);
+    if(d.length) return { divs: d, source: 'Yahoo (proxy)' };
+  }catch(e){}
+  return { divs: [], source: 'none' };
+}
+
+// Detect frequency from dividend history (count payments in last 365 days)
+function detectFrequency(divs){
+  if(!divs || !divs.length) return { freq:'unknown', perYear:0, label:'?' };
+  const now = Math.floor(Date.now()/1000);
+  const recent = divs.filter(d => d.date >= now - 365*86400);
+  const count = recent.length;
+  // Use most recent amount to estimate annual rate
+  const latest = divs[divs.length-1];
+  let freq='annual', perYear=count, label='A';
+  if(count >= 11){ freq='monthly'; perYear=12; label='M'; }
+  else if(count >= 3){ freq='quarterly'; perYear=4; label='Q'; }
+  else if(count >= 2){ freq='semi-annual'; perYear=2; label='S'; }
+  else if(count >= 1){ freq='annual'; perYear=1; label='A'; }
+  else { freq='irregular'; perYear=0; label='?'; }
+  return { freq, perYear, label, latestAmount: latest ? latest.amount : 0 };
+}
+
+// Sum dividends by calendar year, return Map year -> total
+function annualTotals(divs){
+  const m = {};
+  divs.forEach(d=>{
+    const y = new Date(d.date*1000).getUTCFullYear();
+    m[y] = (m[y]||0) + d.amount;
+  });
+  return m;
+}
+
+// CAGR over N years: ((YearN / YearN-M) ^ (1/M)) - 1
+function computeCAGR(divs, years){
+  if(!divs || divs.length < 2) return null;
+  const totals = annualTotals(divs);
+  const yrs = Object.keys(totals).map(Number).sort((a,b)=>a-b);
+  if(yrs.length < years+1) return null;
+  const endY = yrs[yrs.length-1];
+  const startY = yrs[yrs.length-1-years];
+  if(!totals[startY] || totals[startY] <= 0) return null;
+  return (Math.pow(totals[endY]/totals[startY], 1/years) - 1) * 100;
+}
+
+// Growth streak: consecutive years with annual total >= previous year (no cuts)
+function growthStreak(divs){
+  if(!divs || !divs.length) return 0;
+  const totals = annualTotals(divs);
+  const yrs = Object.keys(totals).map(Number).sort((a,b)=>a-b);
+  // Exclude current year if not complete (we'll include but mark partial)
+  const thisYear = new Date().getUTCFullYear();
+  let streak = 0;
+  for(let i=yrs.length-1; i>=1; i--){
+    if(yrs[i] === thisYear && new Date().getUTCMonth() < 11){
+      // current year partial — count if total so far >= last year's full total at same pace
+      // For simplicity: skip current year as a streak increment unless it already exceeds prior
+      if(totals[yrs[i]] >= totals[yrs[i-1]]) streak++;
+      continue;
+    }
+    if(totals[yrs[i]] >= totals[yrs[i-1]]) streak++;
+    else break;
+  }
+  return streak;
+}
+
+// Predict next ex-dividend date from history + frequency
+function predictNextExDiv(divs, freqInfo){
+  if(!divs || !divs.length) return null;
+  const latest = divs[divs.length-1];
+  const now = Math.floor(Date.now()/1000);
+  // If Yahoo returned a clearly-future declared ex-date (>1 day out), use it directly
+  if(latest.date > now + 86400) return latest.date;
+  // Otherwise step forward from latest by estimated interval until we're past now
+  let intervalDays = 91;
+  if(freqInfo.freq === 'monthly') intervalDays = 30;
+  else if(freqInfo.freq === 'quarterly') intervalDays = 91;
+  else if(freqInfo.freq === 'semi-annual') intervalDays = 182;
+  else if(freqInfo.freq === 'annual') intervalDays = 365;
+  // Use median gap from last 5 payments if available (more accurate than the textbook value)
+  if(divs.length >= 2){
+    const gaps = [];
+    for(let i=Math.max(1,divs.length-6); i<divs.length; i++){
+      gaps.push((divs[i].date - divs[i-1].date)/86400);
+    }
+    gaps.sort((a,b)=>a-b);
+    if(gaps.length) intervalDays = gaps[Math.floor(gaps.length/2)];
+  }
+  // Step forward from latest ex-date by interval until we're at least 1 day in the future
+  // (handles "today" ex-dates and float-precision edge cases)
+  let next = latest.date;
+  let safety = 0;
+  while(next < now + 86400 && safety < 20){ next += intervalDays*86400; safety++; }
+  return next;
+}
+
+async function syncIncome(){
+  const status = $('inc-status');
+  if(!portfolio.holdings.length && !watchlist.length){
+    status.textContent='Add holdings or watchlist tickers first.'; status.className='msg err'; return;
+  }
+  $('inc-status-pill').textContent='syncing...'; $('inc-status-pill').className='pill';
+  status.className='msg'; status.textContent='Fetching dividend history (Finnhub primary, Yahoo proxy fallback)...';
+
+  // Combine holdings + watchlist (dedupe)
+  const tickers = [...new Set([
+    ...portfolio.holdings.map(h=>h.ticker),
+    ...watchlist
+  ])];
+  const results = {};
+  let sourceLabel = '';
+  for(const t of tickers){
+    try{
+      const { divs, source } = await fetchDividends(t, 10);
+      if(source !== 'none') sourceLabel = source;
+      const freqInfo = detectFrequency(divs);
+      const nextEx = predictNextExDiv(divs, freqInfo);
+      results[t] = {
+        ticker:t,
+        dividends: divs,
+        frequency: freqInfo.freq,
+        freqLabel: freqInfo.label,
+        perYear: freqInfo.perYear,
+        latestAmount: freqInfo.latestAmount,
+        annualRate: freqInfo.latestAmount * freqInfo.perYear,
+        nextExDate: nextEx,
+        cagr3: computeCAGR(divs, 3),
+        cagr5: computeCAGR(divs, 5),
+        streak: growthStreak(divs),
+        annualTotals: annualTotals(divs),
+        source: source
+      };
+    }catch(e){ /* skip */ }
+  }
+  incomeCache.holdings = results;
+  incomeCache.lastSync = Date.now();
+  // Update portfolio holdings with annual div rate for yield-on-cost column
+  portfolio.holdings.forEach(h=>{
+    const r = results[h.ticker];
+    if(r) h.annualDivRate = r.annualRate;
+  });
+  persistPortfolio();
+  renderPortfolio();
+  renderIncome();
+  $('inc-status-pill').textContent='synced '+Object.keys(results).length+' tickers';
+  $('inc-status-pill').className='pill on';
+  if(sourceLabel === 'none'){
+    status.textContent='No dividend data available. Check your Finnhub key in Settings (free key at finnhub.io).';
+    status.className='msg err';
+    $('inc-status-pill').className='pill off';
+  } else {
+    status.textContent='Synced '+Object.keys(results).length+' tickers via '+sourceLabel+'.';
+    status.className='msg ok';
+  }
+}
+
+function renderIncome(){
+  if(!incomeCache.holdings){
+    return; // nothing synced yet
+  }
+  const cache = incomeCache.holdings;
+
+  // === KPI row ===
+  let annualIncome = 0;
+  portfolio.holdings.forEach(h=>{
+    const r = cache[h.ticker];
+    if(r && r.annualRate) annualIncome += r.annualRate * h.shares;
+  });
+  let totalCost = 0;
+  portfolio.holdings.forEach(h=>{ totalCost += h.costBasis * h.shares; });
+  const blendedYoC = totalCost>0 ? (annualIncome/totalCost*100) : 0;
+  // Next ex-div date across all holdings+watchlist
+  let nextExInfo = null;
+  Object.values(cache).forEach(r=>{
+    if(r.nextExDate){
+      if(!nextExInfo || r.nextExDate < nextExInfo.date){
+        nextExInfo = { date:r.nextExDate, ticker:r.ticker };
+      }
+    }
+  });
+  $('inc-kpi-annual').textContent = annualIncome>0 ? '$'+annualIncome.toFixed(2) : '—';
+  $('inc-kpi-monthly').textContent = annualIncome>0 ? '$'+(annualIncome/12).toFixed(2) : '—';
+  $('inc-kpi-yoc').textContent = totalCost>0 ? blendedYoC.toFixed(2)+'%' : '—';
+  if(nextExInfo){
+    const days = Math.ceil((nextExInfo.date - Date.now()/1000)/86400);
+    $('inc-kpi-next').textContent = days>0 ? days+'d ('+nextExInfo.ticker+')' : 'past';
+  } else {
+    $('inc-kpi-next').textContent = '—';
+  }
+
+  // === Upcoming ex-div calendar (next 60 days) ===
+  const now = Math.floor(Date.now()/1000);
+  const cutoff = now + 60*86400;
+  const upcoming = [];
+  Object.values(cache).forEach(r=>{
+    if(r.nextExDate && r.nextExDate > now - 86400 && r.nextExDate < cutoff){
+      const isHolding = portfolio.holdings.some(h=>h.ticker===r.ticker);
+      const holding = portfolio.holdings.find(h=>h.ticker===r.ticker);
+      const estAmount = isHolding && holding ? r.latestAmount * holding.shares : r.latestAmount;
+      upcoming.push({
+        date:r.nextExDate, ticker:r.ticker, isHolding, estAmount, freq:r.freqLabel
+      });
+    }
+  });
+  upcoming.sort((a,b)=>a.date-b.date);
+  const calTbody = $('inc-calendar-tbody');
+  if(!upcoming.length){
+    calTbody.innerHTML = '<tr><td colspan="7" class="msg" style="text-align:center;padding:14px">No ex-div dates in next 60 days</td></tr>';
+  } else {
+    calTbody.innerHTML = upcoming.map(u=>{
+      const d = new Date(u.date*1000);
+      const days = Math.ceil((u.date - now)/86400);
+      const dateStr = d.toISOString().slice(0,10);
+      const side = u.isHolding ? '<span class="pill on">Holding</span>' : '<span class="pill off">Watch</span>';
+      const action = u.isHolding ? '' : '<button class="btn btn-sm btn-trade" data-inc-buy="'+u.ticker+'">Buy</button>';
+      return '<tr>'
+        +'<td>'+dateStr+'</td>'
+        +'<td>'+(days>=0?days+'d':'today')+'</td>'
+        +'<td><b>'+u.ticker+'</b></td>'
+        +'<td>'+side+'</td>'
+        +'<td class="r">$'+u.estAmount.toFixed(2)+'</td>'
+        +'<td><span class="pill">'+u.freq+'</span></td>'
+        +'<td>'+action+'</td>'
+        +'</tr>';
+    }).join('');
+    calTbody.querySelectorAll('[data-inc-buy]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        switchTab('trade');
+        $('ord-symbol').value = btn.dataset.incBuy;
+        $('ord-side').value = 'buy';
+        updateOrderTypeUI();
+        updateOrderCostEstimate();
+      });
+    });
+  }
+
+  // === Holdings income breakdown ===
+  const hTbody = $('inc-holdings-tbody');
+  if(!portfolio.holdings.length){
+    hTbody.innerHTML = '<tr><td colspan="12" class="msg" style="text-align:center;padding:14px">Add holdings in Portfolio tab first</td></tr>';
+  } else {
+    hTbody.innerHTML = portfolio.holdings.map(h=>{
+      const r = cache[h.ticker];
+      if(!r){
+        return '<tr><td><b>'+h.ticker+'</b></td><td colspan="11" class="msg">No dividend data</td></tr>';
+      }
+      const cur = h.currentPrice || h.costBasis;
+      const curYield = cur>0 ? (r.annualRate/cur*100) : 0;
+      const yoc = h.costBasis>0 ? (r.annualRate/h.costBasis*100) : 0;
+      const annualDollar = r.annualRate * h.shares;
+      const freqPill = '<span class="pill '+(r.frequency==='monthly'?'on':'')+'">'+r.freqLabel+'</span>';
+      const cagr3 = r.cagr3!=null ? r.cagr3.toFixed(1)+'%' : '—';
+      const cagr5 = r.cagr5!=null ? r.cagr5.toFixed(1)+'%' : '—';
+      const cagr3Cls = r.cagr3!=null && r.cagr3>=0 ? 'up' : 'down';
+      const cagr5Cls = r.cagr5!=null && r.cagr5>=0 ? 'up' : 'down';
+      const streakPill = r.streak>=10 ? '<span class="pill buy">'+r.streak+'y</span>'
+                       : r.streak>=5 ? '<span class="pill on">'+r.streak+'y</span>'
+                       : r.streak>=1 ? '<span class="pill">'+r.streak+'y</span>'
+                       : '<span class="pill off">0y</span>';
+      const histSvg = renderHistoryMiniSvg(r.annualTotals);
+      return '<tr>'
+        +'<td><b>'+h.ticker+'</b></td>'
+        +'<td>'+freqPill+'</td>'
+        +'<td class="r">'+h.shares+'</td>'
+        +'<td class="r">$'+r.annualRate.toFixed(3)+'</td>'
+        +'<td class="r">'+(curYield||0).toFixed(2)+'%</td>'
+        +'<td class="r up">'+yoc.toFixed(2)+'%</td>'
+        +'<td class="r up"><b>$'+annualDollar.toFixed(2)+'</b></td>'
+        +'<td class="r '+cagr3Cls+'">'+cagr3+'</td>'
+        +'<td class="r '+cagr5Cls+'">'+cagr5+'</td>'
+        +'<td class="r">'+streakPill+'</td>'
+        +'<td>'+histSvg+'</td>'
+        +'<td class="r"><button class="btn btn-sm" data-inc-analyze="'+h.ticker+'">Analyst</button></td>'
+        +'</tr>';
+    }).join('');
+    hTbody.querySelectorAll('[data-inc-analyze]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        switchTab('analyst');
+        $('wa-symbol').value = btn.dataset.incAnalyze;
+        loadSymbol();
+      });
+    });
+  }
+
+  // === Monthly income chart ===
+  drawMonthlyIncomeChart(cache);
+}
+
+function renderHistoryMiniSvg(annualTotals){
+  if(!annualTotals) return '<span class="msg">—</span>';
+  const yrs = Object.keys(annualTotals).map(Number).sort((a,b)=>a-b);
+  if(yrs.length < 2) return '<span class="msg">—</span>';
+  // Last 10 years
+  const recent = yrs.slice(-10);
+  const values = recent.map(y => annualTotals[y]);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const w = 90, h = 22;
+  const barW = (w - 2) / values.length;
+  const range = max - min || 1;
+  let bars = '';
+  values.forEach((v,i)=>{
+    const barH = Math.max(1, ((v-min)/range)*(h-2));
+    const x = 1 + i*barW;
+    const y = h - barH;
+    const color = (i>0 && v < values[i-1]) ? '#e05555' : '#3ddc97';
+    bars += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(barW*0.7).toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'"/>';
+  });
+  return '<svg width="'+w+'" height="'+h+'" style="display:block;vertical-align:middle"><rect width="'+w+'" height="'+h+'" fill="#0b1220"/>'+bars+'</svg>';
+}
+
+function drawMonthlyIncomeChart(cache){
+  const c = $('inc-monthly-canvas'); const ctx = c.getContext('2d');
+  c.width = c.clientWidth || 600; c.height = 240;
+  ctx.clearRect(0,0,c.width,c.height);
+  if(!portfolio.holdings.length){
+    ctx.fillStyle = '#7a8ba8'; ctx.font='12px sans-serif';
+    ctx.fillText('Add holdings in Portfolio tab first', 10, 120);
+    $('inc-monthly-legend').textContent = '';
+    return;
+  }
+  // Project income per month for next 12 months
+  // For each holding: spread annual income across months based on frequency
+  const months = [];
+  const now = new Date();
+  for(let i=0;i<12;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    months.push({ year:d.getFullYear(), month:d.getMonth(), total:0, byTicker:{} });
+  }
+  portfolio.holdings.forEach(h=>{
+    const r = cache[h.ticker];
+    if(!r || !r.annualRate) return;
+    const annualDollar = r.annualRate * h.shares;
+    // Spread monthly: each month gets annual/12
+    // More accurate would be to use predicted ex-dates, but spread is simpler & close enough
+    months.forEach(m=>{
+      m.total += annualDollar / 12;
+      m.byTicker[h.ticker] = annualDollar / 12;
+    });
+  });
+  const maxVal = Math.max(...months.map(m=>m.total), 1);
+  const padX = 40, padTop = 14, padBottom = 28;
+  const w = c.width - padX - 10, h = c.height - padTop - padBottom;
+  const barW = w / 12 * 0.7;
+  const gap = w / 12 * 0.3;
+  // grid
+  ctx.strokeStyle = '#23304a'; ctx.lineWidth = 1;
+  for(let i=0;i<=4;i++){
+    const y = padTop + (i/4)*h;
+    ctx.beginPath(); ctx.moveTo(padX,y); ctx.lineTo(padX+w,y); ctx.stroke();
+  }
+  // bars
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  months.forEach((m,i)=>{
+    const x = padX + i*(barW+gap) + gap/2;
+    const barH = (m.total/maxVal)*h;
+    const y = padTop + h - barH;
+    ctx.fillStyle = '#3ddc97';
+    ctx.fillRect(x, y, barW, barH);
+    // month label
+    ctx.fillStyle = '#7a8ba8'; ctx.font = '10px monospace';
+    ctx.fillText(monthNames[m.month], x+barW/2-8, c.height-12);
+    // amount on top
+    if(m.total > 0){
+      ctx.fillStyle = '#e6ecf5'; ctx.font = '9px monospace';
+      ctx.fillText('$'+m.total.toFixed(0), x+barW/2-10, y-3);
+    }
+  });
+  // y-axis max label
+  ctx.fillStyle = '#7a8ba8'; ctx.font = '10px monospace';
+  ctx.fillText('$'+maxVal.toFixed(0), 2, padTop+8);
+  ctx.fillText('$0', 2, padTop+h);
+  // legend
+  const monthlyPayers = portfolio.holdings.filter(h=>{
+    const r = cache[h.ticker];
+    return r && r.frequency==='monthly';
+  }).map(h=>h.ticker);
+  let legend = '12-month total: $'+months.reduce((s,m)=>s+m.total,0).toFixed(2);
+  if(monthlyPayers.length) legend += ' • Monthly payers: '+monthlyPayers.join(', ');
+  $('inc-monthly-legend').textContent = legend;
+}
+
+/* ================= BEST PICKS (TACTICAL AGENT) ================= */
+async function runBestPicks(){
+  const status = $('bp-status');
+  const results = $('bp-results');
+  results.innerHTML = '';
+  if(!settings.finnhub){ status.textContent='Set a Finnhub key first.'; status.className='msg err'; return; }
+  const risk = $('bp-risk').value;
+  const cash = parseFloat($('bp-cash').value)||0;
+  const horizon = $('bp-horizon').value;
+  // sync back to portfolio
+  portfolio.riskProfile = risk; portfolio.cash = cash; persistPortfolio();
+  status.className = 'msg'; status.textContent = 'Fetching live data for '+UNIVERSE.length+' REITs...';
+
+  // Pull live quotes + metrics for whole universe (parallel in batches of 5 to be polite to Finnhub)
+  const universe = UNIVERSE.map(u=>({ticker:u.t, name:u.name, sector:u.sector}));
+  const batch = 5;
+  for(let i=0;i<universe.length;i+=batch){
+    const slice = universe.slice(i,i+batch);
+    await Promise.all(slice.map(async u=>{
+      try{
+        const [q, m] = await Promise.all([fetchQuote(u.ticker), fetchMetric(u.ticker).catch(()=>({metric:{}}))]);
+        u.price = q.c; u.changePct = q.dp;
+        u.divYield = extractDividendYield(m);
+        u.payout = extractPayout(m);
+        u.debtEquity = extractDebtEquity(m);
+      }catch(e){}
+    }));
+  }
+  const tradeable = universe.filter(u=>u.price!=null);
+  status.textContent = tradeable.length+' symbols live. Asking Tactical Agent to rank top 3...';
+
+  // Build portfolio summary
+  const pfSummary = {
+    riskProfile: risk,
+    availableCash: cash,
+    timeHorizon: horizon,
+    currentHoldings: portfolio.holdings.map(h=>({
+      ticker:h.ticker, shares:h.shares, costBasis:h.costBasis,
+      sector:h.sector || (UNIVERSE.find(x=>x.t===h.ticker)||{}).sector || 'Other'
+    })),
+    sectorExposure: (()=>{
+      const t={}; let g=0;
+      portfolio.holdings.forEach(h=>{
+        const v=(h.currentPrice||h.costBasis)*h.shares;
+        const s=h.sector||(UNIVERSE.find(x=>x.t===h.ticker)||{}).sector||'Other';
+        t[s]=(t[s]||0)+v; g+=v;
+      });
+      return Object.keys(t).map(k=>({sector:k, pct: g>0?t[k]/g*100:0}));
+    })()
+  };
+
+  const sys = 'You are a Tactical REIT Strategist. The user gave you their portfolio, cash, risk profile, time horizon, '
+    + 'and live market data for a curated REIT universe. Rank the TOP 3 REITs to BUY NOW. '
+    + 'Return ONLY a JSON array of exactly 3 objects, each: {"rank":1,"ticker":"O","name":"Realty Income","sector":"Net Lease","thesis":"one sentence why","suggestedAllocationPct":25,"entryStrategy":"limit @ $55.20 or market on dip","priceNow":55.20}. '
+    + 'Constraints: diversify across sectors, do not duplicate existing holdings unless reinforcing, size allocations so their sum is <= 100. No prose.';
+  const user = JSON.stringify({portfolio:pfSummary, universe:tradeable});
+  try{
+    const res = await runAgent('tactical', sys, user, {maxTokens:2500});
+    const parsed = extractJSON(res.text);
+    if(!Array.isArray(parsed) || !parsed.length){
+      status.textContent='Tactical Agent returned non-JSON. Raw output shown below.'; status.className='msg err';
+      results.innerHTML = '<div class="verdict-box"><h4>'+res.provider+' ('+res.mode+')</h4><pre>'+escapeHtml(res.text)+'</pre></div>';
+      return;
+    }
+    status.textContent = 'Top 3 ready — via '+res.provider+' ('+res.mode+').';
+    status.className = 'msg ok';
+    renderBestPicks(parsed, res);
+  }catch(e){
+    status.textContent='Tactical Agent failed: '+e.message; status.className='msg err';
+  }
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function renderBestPicks(picks, meta){
+  const results = $('bp-results');
+  results.innerHTML =
+    '<div class="card"><div class="verdict-box"><h4>Tactical Agent — '+meta.provider+' ('+meta.mode+')</h4>'
+    + '<div class="disclaimer">AI output is generated analysis, not investment advice. Verify independently before acting.</div>'
+    + '</div></div>'
+    + picks.map(p=>{
+      const color = SECTOR_COLORS[p.sector]||'#7a8ba8';
+      return '<div class="card pick-card">'
+        + '<div class="pick-head">'
+        +   '<div><span class="pick-rank">#'+p.rank+'</span> &nbsp; <span class="pick-ticker">'+escapeHtml(p.ticker)+'</span> <span class="pick-name">'+escapeHtml(p.name||'')+'</span></div>'
+        +   '<span class="pill" style="color:'+color+';border-color:'+color+';background:'+color+'22">'+escapeHtml(p.sector||'')+'</span>'
+        + '</div>'
+        + '<div class="pick-meta">'
+        +   '<span>Price now: <b>$'+(p.priceNow!=null?Number(p.priceNow).toFixed(2):'—')+'</b></span>'
+        +   '<span>Suggested alloc: <b>'+(p.suggestedAllocationPct!=null?p.suggestedAllocationPct+'%':'—')+'</b></span>'
+        + '</div>'
+        + '<div class="pick-thesis">'+escapeHtml(p.thesis||'')+'</div>'
+        + '<div class="pick-thesis" style="color:var(--cyan)"><b>Entry:</b> '+escapeHtml(p.entryStrategy||'')+'</div>'
+        + '<div class="tag-row"><button class="btn btn-sm btn-trade" data-bp-trade="'+p.ticker+'" data-bp-price="'+(p.priceNow||'')+'">Trade this</button> '
+        +   '<button class="btn btn-sm" data-bp-watch="'+p.ticker+'">Watch</button> '
+        +   '<button class="btn btn-sm" data-bp-analyze="'+p.ticker+'">Analyst</button></div>'
+        + '</div>';
+    }).join('');
+  results.querySelectorAll('[data-bp-trade]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      switchTab('trade');
+      $('ord-symbol').value = btn.dataset.bpTrade;
+      $('ord-side').value = 'buy';
+      const p = btn.dataset.bpPrice;
+      if(p){ $('ord-type').value='limit'; $('ord-limit').disabled=false; $('ord-limit').value=parseFloat(p).toFixed(2); }
+      updateOrderCostEstimate();
+    });
+  });
+  results.querySelectorAll('[data-bp-watch]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.bpWatch;
+      if(!watchlist.includes(t)){ watchlist.push(t); persistWatchlist(); btn.textContent='✓ Watch'; }
+    });
+  });
+  results.querySelectorAll('[data-bp-analyze]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      switchTab('analyst');
+      $('wa-symbol').value = btn.dataset.bpAnalyze;
+      loadSymbol();
+    });
+  });
+}
+
+/* ================= TRADE TAB (BROKER INTEGRATION) ================= */
+let brokerState = { kind:null, base:null, connected:false, account:null, positions:[], orders:[], log:[] };
+
+function brokerConfig(kind){
+  if(kind==='alpaca-paper') return { name:'Alpaca Paper', base:'https://paper-api.alpaca.markets/v2', kind:'alpaca' };
+  if(kind==='alpaca-live')  return { name:'Alpaca Live',  base:'https://api.alpaca.markets/v2',        kind:'alpaca' };
+  if(kind==='tradier-sandbox') return { name:'Tradier Sandbox', base:'https://sandbox.tradier.com/v1', kind:'tradier' };
+  if(kind==='tradier-live')    return { name:'Tradier Live',    base:'https://api.tradier.com/v1',     kind:'tradier' };
+  if(kind==='fidelity-manual') return { name:'Fidelity (Manual)', base:null, kind:'fidelity' };
+  return null;
+}
+function brokerHeaders(){
+  if(brokerState.kind==='alpaca'){
+    return { 'APCA-API-KEY-ID':settings.alpacaKey, 'APCA-API-SECRET-KEY':settings.alpacaSecret };
+  } else if(brokerState.kind==='tradier'){
+    return { 'Authorization':'Bearer '+settings.tradier, 'Accept':'application/json' };
+  }
+  return {};
+}
+function brokerLog(line){
+  brokerState.log.unshift('['+new Date().toLocaleTimeString()+'] '+line);
+  if(brokerState.log.length>50) brokerState.log.length=50;
+  const el = $('br-log');
+  el.style.display='block';
+  el.textContent = brokerState.log.join('\n');
+}
+async function brokerConnect(){
+  const status = $('br-status');
+  const kind = $('br-broker').value;
+  const cfg = brokerConfig(kind);
+  if(!cfg) return;
+  if(cfg.kind==='alpaca' && (!settings.alpacaKey || !settings.alpacaSecret)){
+    status.textContent='Enter Alpaca API keys in Settings first.'; status.className='msg err'; return;
+  }
+  if(cfg.kind==='tradier' && !settings.tradier){
+    status.textContent='Enter Tradier token in Settings first.'; status.className='msg err'; return;
+  }
+  if(kind.includes('live')){
+    if(!confirm('You are connecting to a LIVE broker account. Real money orders may be placed. Continue?')){
+      return;
+    }
+  }
+  brokerState.kind = cfg.kind;
+  brokerState.base = cfg.base;
+  status.className='msg'; status.textContent='Connecting to '+cfg.name+'...';
+  try{
+    if(cfg.kind==='fidelity'){
+      // Manual mode — no API. Load positions from localStorage (set via CSV import).
+      brokerState.account = { cash: portfolio.cash||0, buying_power: portfolio.cash||0, equity: portfolio.cash||0 };
+      brokerState.positions = portfolio.holdings.map(h => {
+        const cur = h.currentPrice || h.costBasis;
+        return {
+          ticker: h.ticker,
+          qty: h.shares,
+          avgCost: h.costBasis,
+          current: cur,
+          mv: cur * h.shares,
+          pl: (cur - h.costBasis) * h.shares
+        };
+      });
+      brokerState.connected = true;
+      const holdingsVal = brokerState.positions.reduce((s,p)=>s+p.mv, 0);
+      const totalEquity = holdingsVal + (portfolio.cash||0);
+      $('br-status-pill').textContent = 'Fidelity (manual) — '+brokerState.positions.length+' positions';
+      $('br-status-pill').className = 'pill on';
+      $('br-account-kpis').style.display='flex';
+      $('br-cash').textContent = '$'+Number(portfolio.cash||0).toFixed(2);
+      $('br-bp').textContent   = '$'+Number(portfolio.cash||0).toFixed(2);
+      $('br-pv').textContent   = '$'+holdingsVal.toFixed(2);
+      $('br-equity').textContent = '$'+totalEquity.toFixed(2);
+      $('btn-br-csv').style.display = 'inline-block';
+      $('br-fidelity-hint').style.display = 'block';
+      brokerLog('Connected to Fidelity (manual mode). '+brokerState.positions.length+' positions from Portfolio tab.');
+      status.textContent='Connected (manual mode). Import positions via CSV for accurate broker positions, or use the Portfolio tab holdings.';
+      status.className='msg ok';
+      renderBrokerPositions();
+      renderBrokerOrders();
+    } else if(cfg.kind==='alpaca'){
+      const r = await fetch(cfg.base+'/account', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const acct = await r.json();
+      brokerState.account = acct;
+      brokerState.connected = true;
+      $('br-status-pill').textContent = cfg.name+' connected';
+      $('br-status-pill').className = 'pill '+(kind.includes('live')?'hold':'on');
+      $('br-account-kpis').style.display='flex';
+      $('br-cash').textContent = '$'+Number(acct.cash||0).toFixed(2);
+      $('br-bp').textContent   = '$'+Number(acct.buying_power||0).toFixed(2);
+      $('br-pv').textContent   = '$'+Number(acct.portfolio_value||0).toFixed(2);
+      $('br-equity').textContent = '$'+Number(acct.equity||0).toFixed(2);
+      brokerLog('Connected to '+cfg.name+'. Equity $'+Number(acct.equity||0).toFixed(2));
+      status.textContent='Connected.'; status.className='msg ok';
+    } else if(cfg.kind==='tradier'){
+      const r = await fetch(cfg.base+'/user/profile', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const prof = await r.json();
+      const acct = prof.profile && prof.profile.account;
+      brokerState.account = prof.profile || {};
+      brokerState.connected = true;
+      $('br-status-pill').textContent = cfg.name+' connected';
+      $('br-status-pill').className = 'pill '+(kind.includes('live')?'hold':'on');
+      $('br-account-kpis').style.display='flex';
+      // Tradier profile gives account numbers but balances come from accounts endpoint
+      const acctNum = Array.isArray(acct)?acct[0].account_number:(acct && acct.account_number);
+      if(acctNum){
+        const br = await fetch(cfg.base+'/accounts/'+acctNum+'/balances', { headers: brokerHeaders() });
+        if(br.ok){
+          const bj = await br.json();
+          const b = bj.balances;
+          $('br-cash').textContent = '$'+Number(b && b.total_cash||0).toFixed(2);
+          $('br-bp').textContent   = '$'+Number(b && b.stock_buying_power||0).toFixed(2);
+          $('br-pv').textContent   = '$'+Number(b && b.market_value||0).toFixed(2);
+          $('br-equity').textContent = '$'+Number(b && b.equity||0).toFixed(2);
+        }
+      }
+      brokerLog('Connected to '+cfg.name+'.');
+      status.textContent='Connected.'; status.className='msg ok';
+    }
+    await brokerRefreshAll();
+  }catch(e){
+    brokerState.connected = false;
+    status.textContent='Connection failed: '+e.message; status.className='msg err';
+    brokerLog('Connection failed: '+e.message);
+  }
+}
+async function brokerRefreshAll(){
+  if(!brokerState.connected) return;
+  await Promise.all([brokerLoadPositions(), brokerLoadOrders()]);
+}
+async function brokerLoadPositions(){
+  if(brokerState.kind==='alpaca'){
+    try{
+      const r = await fetch(brokerState.base+'/positions', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const arr = await r.json();
+      brokerState.positions = arr.map(p=>({
+        ticker:p.symbol, qty:parseFloat(p.qty), avgCost:parseFloat(p.avg_entry_price),
+        current:parseFloat(p.current_price), mv:parseFloat(p.market_value), pl:parseFloat(p.unrealized_pl)
+      }));
+    }catch(e){ brokerLog('positions load failed: '+e.message); }
+  } else if(brokerState.kind==='tradier'){
+    try{
+      const prof = brokerState.account || {};
+      const acct = prof.account;
+      const acctNum = Array.isArray(acct)?acct[0].account_number:(acct && acct.account_number);
+      if(!acctNum) return;
+      const r = await fetch(brokerState.base+'/accounts/'+acctNum+'/positions', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const j = await r.json();
+      const pos = (j.positions && (j.positions.position || [])) || [];
+      const arr = Array.isArray(pos)?pos:[pos];
+      brokerState.positions = arr.filter(Boolean).map(p=>({
+        ticker:p.symbol, qty:parseFloat(p.quantity), avgCost:parseFloat(p.cost_basis)/Math.max(parseFloat(p.quantity),1),
+        current:parseFloat(p.close_price||p.last_price||0), mv:parseFloat(p.market_value||0), pl:parseFloat(p.open_gain_loss||0)
+      }));
+    }catch(e){ brokerLog('positions load failed: '+e.message); }
+  }
+  renderBrokerPositions();
+}
+async function brokerLoadOrders(){
+  if(brokerState.kind==='alpaca'){
+    try{
+      const r = await fetch(brokerState.base+'/orders?status=all&limit=20', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const arr = await r.json();
+      brokerState.orders = arr.map(o=>({
+        id:o.id, time:o.created_at, ticker:o.symbol, side:o.side, qty:o.qty, type:o.order_type,
+        limit:o.limit_price, status:o.status, filled:o.filled_qty
+      }));
+    }catch(e){ brokerLog('orders load failed: '+e.message); }
+  } else if(brokerState.kind==='tradier'){
+    try{
+      const prof = brokerState.account || {};
+      const acct = prof.account;
+      const acctNum = Array.isArray(acct)?acct[0].account_number:(acct && acct.account_number);
+      if(!acctNum) return;
+      const r = await fetch(brokerState.base+'/accounts/'+acctNum+'/orders', { headers: brokerHeaders() });
+      if(!r.ok) throw await httpError(r);
+      const j = await r.json();
+      const ord = (j.orders && (j.orders.order || [])) || [];
+      const arr = Array.isArray(ord)?ord:[ord];
+      brokerState.orders = arr.filter(Boolean).map(o=>({
+        id:o.id, time:o.created_date, ticker:o.symbol, side:o.side, qty:o.quantity, type:o.type,
+        limit:o.price, status:o.status, filled:o.executions&&o.executions.length||0
+      }));
+    }catch(e){ brokerLog('orders load failed: '+e.message); }
+  }
+  renderBrokerOrders();
+}
+function renderBrokerPositions(){
+  const tbody = $('br-positions-tbody');
+  $('br-positions-count').textContent = brokerState.positions.length;
+  if(!brokerState.connected){
+    tbody.innerHTML = '<tr><td colspan="7" class="msg" style="text-align:center;padding:20px">Not connected</td></tr>'; return;
+  }
+  if(!brokerState.positions.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="msg" style="text-align:center;padding:20px">No open positions</td></tr>'; return;
+  }
+  tbody.innerHTML = brokerState.positions.map(p=>{
+    const plCls = p.pl>=0?'up':'down';
+    return '<tr>'
+      +'<td><b>'+p.ticker+'</b></td>'
+      +'<td class="r">'+p.qty+'</td>'
+      +'<td class="r">$'+p.avgCost.toFixed(2)+'</td>'
+      +'<td class="r">$'+p.current.toFixed(2)+'</td>'
+      +'<td class="r">$'+p.mv.toFixed(2)+'</td>'
+      +'<td class="r '+plCls+'">'+(p.pl>=0?'+':'')+'$'+p.pl.toFixed(2)+'</td>'
+      +'<td class="r"><button class="btn btn-sm btn-danger" data-pos-sell="'+p.ticker+'" data-pos-qty="'+p.qty+'">Sell</button></td>'
+      +'</tr>';
+  }).join('');
+  tbody.querySelectorAll('[data-pos-sell]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $('ord-symbol').value = btn.dataset.posSell;
+      $('ord-side').value = 'sell';
+      $('ord-qty').value = Math.floor(parseFloat(btn.dataset.posQty));
+      $('ord-type').value = 'market';
+      updateOrderTypeUI();
+      updateOrderCostEstimate();
+    });
+  });
+}
+function renderBrokerOrders(){
+  const tbody = $('br-orders-tbody');
+  $('br-orders-count').textContent = brokerState.orders.length;
+  if(!brokerState.connected){
+    tbody.innerHTML = '<tr><td colspan="8" class="msg" style="text-align:center;padding:20px">Not connected</td></tr>'; return;
+  }
+  if(!brokerState.orders.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="msg" style="text-align:center;padding:20px">No recent orders</td></tr>'; return;
+  }
+  tbody.innerHTML = brokerState.orders.map(o=>{
+    const stCls = o.status==='filled'?'on':(o.status==='canceled'||o.status==='rejected'?'off':'');
+    return '<tr>'
+      +'<td>'+(o.time||'').slice(0,19).replace('T',' ')+'</td>'
+      +'<td><b>'+o.ticker+'</b></td>'
+      +'<td>'+(o.side||'').toUpperCase()+'</td>'
+      +'<td class="r">'+o.qty+'</td>'
+      +'<td>'+o.type+'</td>'
+      +'<td class="r">'+(o.limit!=null?'$'+o.limit:'—')+'</td>'
+      +'<td><span class="pill '+stCls+'">'+o.status+'</span></td>'
+      +'<td class="r">'+(o.filled||0)+'</td>'
+      +'</tr>';
+  }).join('');
+}
+function updateOrderTypeUI(){
+  const t = $('ord-type').value;
+  $('ord-limit').disabled = !(t==='limit' || t==='stop_limit');
+  $('ord-stop').disabled  = !(t==='stop' || t==='stop_limit');
+}
+async function updateOrderCostEstimate(){
+  const sym = $('ord-symbol').value.trim().toUpperCase();
+  const qty = parseFloat($('ord-qty').value)||0;
+  if(!sym || !qty){ $('ord-est-cost').textContent=''; return; }
+  if(!settings.finnhub){ $('ord-est-cost').textContent=''; return; }
+  try{
+    const q = await fetchQuote(sym);
+    if(q && q.c){
+      const cost = q.c*qty;
+      $('ord-est-cost').textContent = 'Est. cost ~$'+cost.toFixed(2)+' @ $'+q.c.toFixed(2);
+    }
+  }catch(e){}
+}
+async function placeOrder(){
+  const status = $('ord-status');
+  if(!brokerState.connected){ status.textContent='Connect a broker first.'; status.className='msg err'; return; }
+  const sym = $('ord-symbol').value.trim().toUpperCase();
+  const side = $('ord-side').value;
+  const qty = parseInt($('ord-qty').value);
+  const type = $('ord-type').value;
+  const tif = $('ord-tif').value;
+  const limit = $('ord-limit').value;
+  const stop = $('ord-stop').value;
+  if(!isValidSymbol(sym)){ status.textContent='Invalid ticker.'; status.className='msg err'; return; }
+  if(!qty || qty<=0){ status.textContent='Qty must be > 0.'; status.className='msg err'; return; }
+  if((type==='limit'||type==='stop_limit') && !limit){ status.textContent='Limit price required.'; status.className='msg err'; return; }
+  if((type==='stop'||type==='stop_limit') && !stop){ status.textContent='Stop price required.'; status.className='msg err'; return; }
+  if(brokerState.kind==='alpaca' && brokerState.base.includes('api.alpaca.markets') && !brokerState.base.includes('paper')){
+    if(!confirm('LIVE ORDER: '+side.toUpperCase()+' '+qty+' '+sym+' '+type.toUpperCase()+'. Real money. Continue?')) return;
+  }
+  // Fidelity manual mode — show summary modal instead of API submission
+  if(brokerState.kind==='fidelity'){
+    showManualOrderModal({ sym, side, qty, type, tif, limit, stop });
+    return;
+  }
+  status.className='msg'; status.textContent='Submitting '+side+' '+qty+' '+sym+' '+type+'...';
+  try{
+    let resp;
+    if(brokerState.kind==='alpaca'){
+      const body = {
+        symbol:sym, qty:qty.toString(), side, type: type==='stop_limit'?'stop_limit':type,
+        time_in_force: tif.toUpperCase()
+      };
+      if(type==='limit'||type==='stop_limit') body.limit_price = parseFloat(limit).toString();
+      if(type==='stop'||type==='stop_limit') body.stop_price = parseFloat(stop).toString();
+      const r = await fetch(brokerState.base+'/orders', {
+        method:'POST', headers:Object.assign({'Content-Type':'application/json'}, brokerHeaders()),
+        body: JSON.stringify(body)
+      });
+      if(!r.ok) throw await httpError(r);
+      resp = await r.json();
+      brokerLog('Order submitted: '+side+' '+qty+' '+sym+' '+type+' → id '+resp.id+' status '+resp.status);
+      status.textContent = 'Order submitted. Status: '+resp.status+' (id '+resp.id+').';
+      status.className = 'msg ok';
+    } else if(brokerState.kind==='tradier'){
+      const acct = brokerState.account && brokerState.account.account;
+      const acctNum = Array.isArray(acct)?acct[0].account_number:(acct && acct.account_number);
+      if(!acctNum) throw new Error('No account number');
+      const form = new URLSearchParams();
+      form.append('class','equity');
+      form.append('symbol',sym);
+      form.append('side',side);
+      form.append('quantity',qty.toString());
+      let tType = type;
+      if(type==='market') tType='market';
+      else if(type==='limit') tType='limit';
+      else if(type==='stop') tType='stop';
+      else if(type==='stop_limit') tType='stop_limit';
+      form.append('type',tType);
+      if(type==='limit'||type==='stop_limit') form.append('price',limit);
+      if(type==='stop'||type==='stop_limit') form.append('stop',stop);
+      form.append('duration', tif==='day'?'day':(tif==='gtc'?'gtc':tif));
+      const r = await fetch(brokerState.base+'/accounts/'+acctNum+'/orders', {
+        method:'POST', headers:Object.assign({'Content-Type':'application/x-www-form-urlencoded'}, brokerHeaders()),
+        body: form.toString()
+      });
+      if(!r.ok) throw await httpError(r);
+      resp = await r.json();
+      brokerLog('Order submitted: '+side+' '+qty+' '+sym+' '+type+' → id '+resp.order.id+' status '+resp.order.status);
+      status.textContent = 'Order submitted. Status: '+resp.order.status+' (id '+resp.order.id+').';
+      status.className = 'msg ok';
+    }
+    await brokerRefreshAll();
+  }catch(e){
+    status.textContent='Order failed: '+e.message; status.className='msg err';
+    brokerLog('Order failed: '+e.message);
+  }
+}
+
+/* ================= FIDELITY MANUAL MODE ================= */
+function showManualOrderModal(o){
+  const lines = [
+    'Action:    ' + o.side.toUpperCase(),
+    'Symbol:    ' + o.sym,
+    'Quantity:  ' + o.qty,
+    'Order Type: ' + o.type.toUpperCase(),
+  ];
+  if(o.type === 'limit' || o.type === 'stop_limit') lines.push('Limit Price: $' + o.limit);
+  if(o.type === 'stop' || o.type === 'stop_limit') lines.push('Stop Price:  $' + o.stop);
+  lines.push('Time in Force: ' + o.tif.toUpperCase());
+  lines.push('DRIP:       ' + ($('ord-drip').checked ? 'Yes (enable in Fidelity account settings)' : 'No'));
+  const summary = lines.join('\n');
+  $('manual-order-content').innerHTML =
+    '<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:13px;line-height:1.7">'+summary+'</pre>'
+    + '<div class="hint" style="margin-top:10px">Log in to Fidelity.com &rarr; Accounts &amp; Trade &rarr; Trade &rarr; enter the details above. For DRIP, enroll at Accounts &amp; Trade &rarr; Account Features &rarr; Brokerage &amp; Trading &rarr; Dividends and Capital Gains.</div>';
+  $('manual-order-modal').style.display = 'flex';
+  $('manual-copy-status').textContent = '';
+  brokerLog('Manual order summary generated: '+o.side+' '+o.qty+' '+o.sym+' '+o.type+' (Fidelity mode — place manually)');
+}
+
+function closeManualModal(){ $('manual-order-modal').style.display = 'none'; }
+
+async function copyManualOrder(){
+  const text = $('manual-order-content').innerText;
+  try{
+    await navigator.clipboard.writeText(text);
+    $('manual-copy-status').textContent = 'Copied to clipboard.';
+    $('manual-copy-status').className = 'msg ok';
+  }catch(e){
+    // Fallback — create a textarea and select it
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); $('manual-copy-status').textContent = 'Copied.'; $('manual-copy-status').className='msg ok'; }
+    catch(e2){ $('manual-copy-status').textContent = 'Copy failed — select text manually.'; $('manual-copy-status').className='msg err'; }
+    document.body.removeChild(ta);
+  }
+  setTimeout(()=>{ $('manual-copy-status').textContent=''; }, 2000);
+}
+
+// Flexible CSV parser — auto-detects delimiter and column names
+// Supports Fidelity's export format (Symbol, Description, Quantity, Last Price, Cost Basis, ...)
+// and generic broker CSVs (Ticker, Shares, Cost, ...)
+// Symbols to exclude — money market funds, cash sweep, and other non-equity items
+// that Fidelity includes in position exports but aren't tradable REITs/stocks.
+const CSV_EXCLUDE_SYMBOLS = new Set([
+  'SPAXX','FCASH','FDIC','FZDXX','FZCXX','FTTXX','FTEXX','SPAX','CASH','SWEEP',
+  'MMDA','MMF','GOVT','TBD','TMB','FGMXX','FNSXX','FRFXX'
+]);
+
+function parseBrokerCSV(text){
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if(lines.length < 2) return [];
+  // Detect delimiter (comma, tab, or semicolon)
+  const firstLine = lines[0];
+  const delim = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
+  const split = (line) => {
+    // Simple CSV split — handles quoted fields with embedded commas
+    const out = []; let cur = ''; let inQ = false;
+    for(let i=0;i<line.length;i++){
+      const c = line[i];
+      if(c === '"'){ inQ = !inQ; }
+      else if(c === delim && !inQ){ out.push(cur.trim()); cur=''; }
+      else { cur += c; }
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  const headers = split(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g,''));
+  // Map common column name variations
+  const findCol = (names) => {
+    for(let i=0;i<headers.length;i++){
+      if(names.some(n => headers[i] === n || headers[i].includes(n))) return i;
+    }
+    return -1;
+  };
+  const symIdx   = findCol(['symbol','ticker','stock']);
+  const qtyIdx   = findCol(['quantity','qty','shares','sh']);
+  const costIdx  = findCol(['costbasis','cost','avgcost','averagecost','averageprice']);
+  const priceIdx = findCol(['lastprice','last','price','currentprice','current','marketprice']);
+  const nameIdx  = findCol(['description','name','company','security']);
+  if(symIdx < 0 || qtyIdx < 0){
+    throw new Error('CSV must contain at least Symbol and Quantity columns. Detected headers: '+headers.join(', '));
+  }
+  const holdings = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = split(lines[i]);
+    if(cols.length < Math.max(symIdx, qtyIdx)+1) continue;
+    const sym = (cols[symIdx]||'').toUpperCase().trim();
+    if(!sym || !/^[A-Z]{1,6}$/.test(sym)) continue; // skip malformed
+    if(CSV_EXCLUDE_SYMBOLS.has(sym)) continue; // skip money market / cash sweep
+    // Skip if description contains money market / cash keywords (when name col present)
+    if(nameIdx >= 0){
+      const desc = (cols[nameIdx]||'').toUpperCase();
+      if(/MONEY MARKET|CASH RESERVES|SWEEP|GOVERNMENT RESERVES|FDIC-INSURED/.test(desc) && !/CORP|INC|TRUST|REIT|REALTY|PROPERTIES|GROUP/.test(desc)) continue;
+    }
+    const qty = parseFloat((cols[qtyIdx]||'').replace(/[$,]/g,''));
+    if(!qty || qty <= 0) continue;
+    const cost = costIdx>=0 ? parseFloat((cols[costIdx]||'').replace(/[$,]/g,'')) || 0 : 0;
+    const price = priceIdx>=0 ? parseFloat((cols[priceIdx]||'').replace(/[$,]/g,'')) || null : null;
+    const name = nameIdx>=0 ? (cols[nameIdx]||'').trim() : '';
+    const u = UNIVERSE.find(x => x.t === sym);
+    holdings.push({
+      ticker: sym,
+      shares: qty,
+      costBasis: cost>0 ? cost : (price || 0),
+      currentPrice: price,
+      sector: u ? u.sector : 'Other',
+      name: name
+    });
+  }
+  return holdings;
+}
+
+async function importFidelityCSV(file){
+  const status = $('br-status');
+  status.className = 'msg'; status.textContent = 'Parsing CSV...';
+  try{
+    const text = await file.text();
+    const holdings = parseBrokerCSV(text);
+    if(!holdings.length){
+      status.textContent = 'No valid equity positions found in CSV. Check the file format.';
+      status.className = 'msg err';
+      return;
+    }
+    // Merge into portfolio — replace any holding with same ticker, otherwise add
+    holdings.forEach(h => {
+      const existing = portfolio.holdings.findIndex(p => p.ticker === h.ticker);
+      if(existing >= 0){ portfolio.holdings[existing] = h; }
+      else { portfolio.holdings.push(h); }
+    });
+    persistPortfolio();
+    renderPortfolio();
+    // Re-render broker positions if Fidelity is connected
+    if(brokerState.kind === 'fidelity' && brokerState.connected){
+      brokerConnect();
+    }
+    status.textContent = 'Imported '+holdings.length+' positions from CSV. Review in Portfolio tab.';
+    status.className = 'msg ok';
+    brokerLog('CSV import: '+holdings.length+' positions ('+holdings.map(h=>h.ticker).join(', ')+')');
+  }catch(e){
+    status.textContent = 'CSV import failed: '+e.message;
+    status.className = 'msg err';
+  }
+}
+
+function onBrokerDropdownChange(){
+  const kind = $('br-broker').value;
+  if(kind === 'fidelity-manual'){
+    $('btn-br-csv').style.display = 'inline-block';
+    $('br-fidelity-hint').style.display = 'block';
+  } else {
+    $('btn-br-csv').style.display = 'none';
+    $('br-fidelity-hint').style.display = 'none';
+  }
+}
+
+async function routeOrderAgent(){
+  const status = $('ord-status');
+  if(!brokerState.connected){ status.textContent='Connect a broker first (Agent needs your account state).'; status.className='msg err'; return; }
+  const sym = $('ord-symbol').value.trim().toUpperCase();
+  if(!isValidSymbol(sym)){ status.textContent='Enter a valid ticker first.'; status.className='msg err'; return; }
+  if(!settings.finnhub){ status.textContent='Finnhub key required to fetch current price.'; status.className='msg err'; return; }
+  status.className='msg'; status.textContent='Running Order Router Agent...';
+  // gather context
+  let quote=null, metric=null, analyst=null;
+  try{ quote = await fetchQuote(sym); }catch(e){}
+  try{ metric = await fetchMetric(sym).catch(()=>({metric:{}})); }catch(e){}
+  // pull analyst verdict if same symbol
+  const verdictText = ($('verdict-text').textContent||'').trim();
+  const sameSym = currentSymbol === sym && verdictText;
+  const dripEnabled = $('ord-drip').checked;
+  const sys = 'You are an institutional Order Router. Given the symbol, live quote, broker account state, '
+    + 'and (if available) an analyst verdict, recommend the optimal order parameters. '
+    + 'Return ONLY a JSON object: {"side":"buy|sell","orderType":"market|limit|stop|stop_limit","quantity":<int>,'
+    + '"limitPrice":<number|null>,"stopPrice":<number|null>,"timeInForce":"day|gtc",'
+    + '"rationale":"one sentence", "riskNote":"one sentence on sizing/stop"}. '
+    + 'Be conservative on sizing (max 25% of buying power per name). '
+    + (dripEnabled ? 'User has DRIP (dividend reinvestment) enabled at broker — assume cash dividends compound into additional shares; size accordingly.' : '')
+    + ' No prose outside JSON.';
+  const ctx = {
+    symbol: sym,
+    quote: quote,
+    fundamentals: {
+      dividendYield: extractDividendYield(metric),
+      payoutRatio: extractPayout(metric),
+      debtToEquity: extractDebtEquity(metric)
+    },
+    account: {
+      cash: brokerState.account && brokerState.account.cash,
+      buying_power: brokerState.account && brokerState.account.buying_power,
+      equity: brokerState.account && brokerState.account.equity
+    },
+    existingPosition: brokerState.positions.find(p=>p.ticker===sym),
+    analystVerdict: sameSym ? verdictText : null,
+    dripEnabled: dripEnabled,
+    portfolio: { riskProfile: portfolio.riskProfile, cash: portfolio.cash, holdings: portfolio.holdings.map(h=>({ticker:h.ticker,shares:h.shares,sector:h.sector})) }
+  };
+  try{
+    const res = await runAgent('router', sys, JSON.stringify(ctx), {maxTokens:1500});
+    const parsed = extractJSON(res.text);
+    $('route-card').style.display='block';
+    $('route-provider').textContent = 'Order Router Agent — '+res.provider+' ('+res.mode+')';
+    if(parsed){
+      // pre-fill the ticket
+      $('ord-symbol').value = sym;
+      $('ord-side').value = parsed.side || 'buy';
+      $('ord-qty').value = parsed.quantity || 10;
+      $('ord-type').value = parsed.orderType || 'market';
+      updateOrderTypeUI();
+      if(parsed.limitPrice!=null){ $('ord-limit').value = parsed.limitPrice; }
+      if(parsed.stopPrice!=null){ $('ord-stop').value = parsed.stopPrice; }
+      $('ord-tif').value = parsed.timeInForce || 'day';
+      $('route-text').textContent =
+        'Recommended order:\n'+JSON.stringify(parsed,null,2)
+        +'\n\nRationale: '+(parsed.rationale||'')
+        +'\nRisk note: '+(parsed.riskNote||'');
+      status.textContent='Route applied to ticket. Review and press Place order.';
+      status.className='msg ok';
+    } else {
+      $('route-text').textContent = res.text;
+      status.textContent='Router returned non-JSON. See raw output.';
+      status.className='msg err';
+    }
+    updateOrderCostEstimate();
+  }catch(e){
+    status.textContent='Order Router failed: '+e.message; status.className='msg err';
+  }
+}
+
+/* ================= CHAIN STATUS DISPLAY ================= */
+function renderChainStatus(){
+  const roles = ['screener','analyst','tactical','router'];
+  $('chain-status').innerHTML = roles.map(role=>{
+    const chain = resolveChain(role);
+    const line = chain.length
+      ? chain.map(id=>PROVIDERS[id].label).join(' &rarr; ') + ' <span class="pill '+(chain.length>1?'on':'off')+'">'+(chain.length>1?'multi-tier':'single-api')+'</span>'
+      : '<span class="pill off">none configured</span>';
+    return '<div style="margin-bottom:8px"><strong style="font-size:11px;text-transform:capitalize">'+role+'</strong><br><span class="chain-line">'+line+'</span></div>';
+  }).join('') + '<div class="chain-line" style="margin-top:6px"><span class="status-dot '+(settings.groq?'on':'off')+'"></span>Groq (fast/lightweight): '+(settings.groq?'key set':'not set')+'</div>'
+  + '<div class="chain-line" style="margin-top:6px"><span class="status-dot '+(settings.alpacaKey&&settings.alpacaSecret?'on':'off')+'"></span>Alpaca: '+((settings.alpacaKey&&settings.alpacaSecret)?'keys set':'not set')+'</div>'
+  + '<div class="chain-line"><span class="status-dot '+(settings.tradier?'on':'off')+'"></span>Tradier: '+(settings.tradier?'token set':'not set')+'</div>';
+}
+
+/* ================= TABS ================= */
+function switchTab(name){
+  document.querySelectorAll('#tabs button').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(s=> s.classList.toggle('active', s.id==='tab-'+name));
+  if(name==='portfolio') renderPortfolio();
+  if(name==='income' && incomeCache.holdings) renderIncome();
+}
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(btn) switchTab(btn.dataset.tab);
+});
+
+/* ================= BOOTSTRAP ================= */
+loadSettings();
+populateSettingsForm();
+populateSectorFilter();
+renderChainStatus();
+renderPortfolio();
+clearChart('Load a symbol to see its price chart.');
+
+// Screener tab
+$('btn-run-screen').addEventListener('click', e=> withSpinner(e.target, runScreener));
+// Analyst tab
+$('btn-load-symbol').addEventListener('click', e=> withSpinner(e.target, loadSymbol));
+$('btn-analyze').addEventListener('click', e=> withSpinner(e.target, analyzeSymbol));
+$('btn-watchlist-add').addEventListener('click', watchlistAddCurrent);
+$('btn-analyst-trade').addEventListener('click', ()=>{
+  if(!currentSymbol) return;
+  switchTab('trade');
+  $('ord-symbol').value = currentSymbol;
+  $('ord-side').value = 'buy';
+  updateOrderTypeUI();
+  updateOrderCostEstimate();
+});
+// Best Picks
+$('btn-bestpicks').addEventListener('click', e=> withSpinner(e.target, runBestPicks));
+// Trade tab
+$('btn-br-connect').addEventListener('click', e=> withSpinner(e.target, brokerConnect));
+$('btn-br-refresh').addEventListener('click', e=> withSpinner(e.target, brokerRefreshAll));
+$('btn-place-order').addEventListener('click', e=> withSpinner(e.target, placeOrder));
+$('btn-route-agent').addEventListener('click', e=> withSpinner(e.target, routeOrderAgent));
+$('br-broker').addEventListener('change', onBrokerDropdownChange);
+$('btn-br-csv').addEventListener('click', ()=> $('br-csv-file').click());
+$('br-csv-file').addEventListener('change', e=> {
+  if(e.target.files && e.target.files[0]) importFidelityCSV(e.target.files[0]);
+  e.target.value = ''; // reset so same file can be re-imported
+});
+$('btn-copy-order').addEventListener('click', copyManualOrder);
+$('btn-close-manual').addEventListener('click', closeManualModal);
+$('manual-order-modal').addEventListener('click', e=> { if(e.target.id === 'manual-order-modal') closeManualModal(); });
+$('ord-type').addEventListener('change', updateOrderTypeUI);
+$('ord-symbol').addEventListener('blur', ()=>{ $('ord-symbol').value = $('ord-symbol').value.trim().toUpperCase(); updateOrderCostEstimate(); });
+$('ord-qty').addEventListener('blur', updateOrderCostEstimate);
+// Portfolio tab
+$('btn-pf-add').addEventListener('click', addHolding);
+$('btn-pf-sync').addEventListener('click', e=> withSpinner(e.target, syncPortfolioPrices));
+$('btn-pf-clear').addEventListener('click', clearPortfolio);
+$('pf-risk').addEventListener('change', onPortfolioMetaChange);
+$('pf-cash').addEventListener('blur', onPortfolioMetaChange);
+// Income tab
+$('btn-inc-refresh').addEventListener('click', e=> withSpinner(e.target, syncIncome));
+// Settings tab
+$('btn-save-settings').addEventListener('click', saveSettings);
+$('btn-save-broker').addEventListener('click', saveBrokerKeys);
+$('btn-test-mock').addEventListener('click', runMockTest);
+</script>
+</body>
+</html>
