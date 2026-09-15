@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>REIT Strategist v2</title>
+<title>REIT Strategist v3</title>
 <meta name="theme-color" content="#0b1220">
 <meta name="color-scheme" content="dark">
 <meta name="description" content="Live REIT screener with AI Screener, Analyst, Tactical, and Order Router agents. Real market data plus broker integration. Not investment advice.">
@@ -237,6 +237,11 @@ select#f-sector{min-width:150px}
         <div class="field"><label>Min dividend yield %</label><input id="f-yield" type="number" step="0.1" value="3" style="width:90px"></div>
         <div class="field" style="flex:1"></div>
         <button class="btn btn-primary" id="btn-run-screen">&#128269; Discover REITs</button>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>Add specific ticker(s) <span class="sub">comma-separated, included regardless of sector filter</span></label>
+          <input id="f-manual-tickers" type="text" placeholder="e.g. IRM, GLPI, KIM" style="width:100%">
+        </div>
       </div>
       <div class="msg" id="screen-status"></div>
     </div>
@@ -1078,15 +1083,24 @@ async function fetchCandles(symbol, days){
 }
 function extractDividendYield(metric){
   const m = metric && metric.metric || {};
-  return m.dividendYieldIndicatedAnnual ?? m.currentDividendYieldTTM ?? m.dividendYield5Y ?? null;
+  return m.dividendYieldIndicatedAnnual ?? m.currentDividendYieldTTM ?? m.dividendYield5Y
+      ?? m.dividendYieldAnnual ?? m.dividendYieldIndicated ?? m.dividendYield ?? null;
 }
 function extractPayout(metric){
   const m = metric && metric.metric || {};
-  return m.payoutRatioTTM ?? m.payoutRatioAnnual ?? null;
+  return m.payoutRatioTTM ?? m.payoutRatioAnnual ?? m.payoutRatio5Y ?? null;
 }
 function extractDebtEquity(metric){
   const m = metric && metric.metric || {};
-  return m['totalDebt/totalEquityAnnual'] ?? m['totalDebt/totalEquityQuarterly'] ?? null;
+  return m['totalDebt/totalEquityAnnual'] ?? m['totalDebt/totalEquityQuarterly']
+      ?? m['totalDebt/totalEquityTTM'] ?? m['longTermDebt/equityAnnual']
+      ?? m['longTermDebt/equityQuarterly'] ?? null;
+}
+function hasThinData(r){
+  return r.divYield==null && r.payout==null && r.debtEquity==null && (!r.news || !r.news.length);
+}
+function externalLink(ticker){
+  return 'https://stockanalysis.com/stocks/'+encodeURIComponent(ticker)+'/';
 }
 
 /* ================= SCREENER FLOW ================= */
@@ -1112,9 +1126,17 @@ async function runScreener(){
   if(!settings.finnhub){ status.textContent = 'Set a Finnhub API key in Settings first.'; status.className='msg err'; return; }
   const sector = $('f-sector').value;
   const minYield = parseFloat($('f-yield').value) || 0;
-  const pool = UNIVERSE.filter(u => !sector || u.sector === sector);
+  const manualRaw = ($('f-manual-tickers').value||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  const invalidManual = manualRaw.filter(s=>!isValidSymbol(s));
+  const manualTickers = manualRaw.filter(s=>isValidSymbol(s));
+  const base = UNIVERSE.filter(u => !sector || u.sector === sector);
+  const extras = manualTickers
+    .filter(t => !base.some(u=>u.t===t))
+    .map(t => { const known = UNIVERSE.find(u=>u.t===t); return known || {t, name:t, sector:'Custom'}; });
+  const pool = base.concat(extras);
   status.className = 'msg';
-  status.textContent = 'Fetching live data + recent news for '+pool.length+' symbols...';
+  const invalidNote = invalidManual.length ? ('Skipped invalid ticker(s): '+invalidManual.join(', ')+'. ') : '';
+  status.textContent = invalidNote+'Fetching live data + recent news for '+pool.length+' symbols...';
 
   const results = [];
   for(const u of pool){
@@ -1138,6 +1160,7 @@ async function runScreener(){
   }
   const filtered = results.filter(r => r.divYield==null || r.divYield >= minYield)
                            .sort((a,b)=> (b.divYield||0) - (a.divYield||0));
+  filtered.forEach(r=>{ r.thin = hasThinData(r); });
 
   status.textContent = filtered.length+' candidates found. Requesting Discovery Agent thesis (with news context)...';
   try{
@@ -1187,7 +1210,9 @@ function renderScreenerTable(rows){
       +'<td class="r">$'+(r.price!=null?r.price.toFixed(2):'—')+'</td>'
       +'<td class="r '+chgCls+'">'+(r.changePct!=null?(r.changePct>=0?'+':'')+r.changePct.toFixed(2)+'%':'—')+'</td>'
       +'<td class="r">'+(r.divYield!=null?r.divYield.toFixed(2)+'%':'—')+'</td>'
-      +'<td class="thesis">'+(r.thesis||'—')+'</td>'
+      +'<td class="thesis">'+(r.thin
+          ? 'Fundamentals unavailable from Finnhub — <a href="'+externalLink(r.ticker)+'" target="_blank" rel="noopener">review '+r.ticker+' live</a>'
+          : (r.thesis||'—'))+'</td>'
       +'<td class="r" style="white-space:nowrap">'
         +'<button class="btn btn-sm" data-watch="'+r.ticker+'" title="'+(inWatch?'Already in watchlist':'Add to watchlist')+'">'+(inWatch?'✓':'+')+'</button> '
         +'<button class="btn btn-sm" data-goto="'+r.ticker+'">Watch</button> '
